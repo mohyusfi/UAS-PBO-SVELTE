@@ -1,0 +1,64 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-neo-yellow: #FFDE47;
+  --color-neo-pink: #FF8E9E;
+  --color-neo-blue: #38bdf8;
+  --color-neo-green: #4ade80;
+  --color-neo-orange: #FF76CE;
+  --color-neo-purple: #B1AFFF;
+  --color-neo-bg: #F4F2DE;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-neo-bg);
+    color: #1a1a1a;
+    font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  /* Custom Scrollbar Brutalist */
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #1a1a1a;
+    border-left: 3px solid #1a1a1a;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-neo-yellow);
+    border: 3px solid #1a1a1a;
+  }
+}
+
+/* Neo Brutalism Helper Classes */
+.neo-border {
+  border: 3px solid #1a1a1a;
+}
+
+.neo-shadow {
+  box-shadow: 4px 4px 0px 0px #1a1a1a;
+}
+
+.neo-shadow-lg {
+  box-shadow: 8px 8px 0px 0px #1a1a1a;
+}
+
+.neo-shadow-sm {
+  box-shadow: 2px 2px 0px 0px #1a1a1a;
+}
+
+.neo-interactive {
+  transition: all 0.15s ease-in-out;
+}
+
+.neo-interactive:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px 0px #1a1a1a;
+}
+
+.neo-interactive:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px 0px #1a1a1a;
+}
