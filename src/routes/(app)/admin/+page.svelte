@@ -20,7 +20,6 @@
     }
   });
 
-  // Book CRUD Modal State
   let isBookModalOpen = $state(false);
   let modalMode = $state<'add' | 'edit'>('add');
   let selectedBookId = $state<string | null>(null);
@@ -151,7 +150,7 @@
         Dashboard Pengelola
       </span>
       <h1 class="text-3xl md:text-5xl font-black uppercase tracking-tight text-gray-900 m-0">
-        KONTROL UTAMA ADMIN 🛠️
+        KONTROL UTAMA ADMIN 
       </h1>
     </div>
     
@@ -205,7 +204,7 @@
     </Card>
   {:else}
     <div class="overflow-x-auto neo-border neo-shadow bg-white rounded-none">
-      <table class="w-full text-left border-collapse min-w-[700px]">
+      <table class="w-full text-left border-collapse min-w-175">
         <thead>
           <tr class="bg-[#1a1a1a] text-white border-b-4 border-black">
             <th class="p-4 font-black uppercase text-xs tracking-wider">Judul / Penulis</th>
@@ -237,10 +236,10 @@
               <td class="p-4 text-center font-bold text-sm">{book.borrowedCount}x</td>
               <td class="p-4 text-right">
                 <div class="flex items-center justify-end gap-2">
-                  <Button onclick={() => openEditModal(book)} color="blue" class="!px-3 !py-1.5 !text-xs !shadow-sm">
+                  <Button onclick={() => openEditModal(book)} color="blue" class="px-3! py-1.5! text-xs! shadow-sm!">
                     Edit
                   </Button>
-                  <Button onclick={() => handleDeleteBook(book.id, book.title)} color="pink" class="!px-3 !py-1.5 !text-xs !shadow-sm">
+                  <Button onclick={() => handleDeleteBook(book.id, book.title)} color="pink" class="px-3! py-1.5! text-xs! shadow-sm!">
                     Hapus
                   </Button>
                 </div>
@@ -252,7 +251,6 @@
     </div>
   {/if}
 
-  <!-- BOOK CRUD MODAL (Add / Edit) -->
   <Modal
     isOpen={isBookModalOpen}
     title={modalMode === 'add' ? 'Tambah Buku Baru 📖' : 'Edit Detail Buku ✏️'}
@@ -351,10 +349,10 @@
       />
 
       <div class="flex justify-end gap-3 mt-6">
-        <Button onclick={() => isBookModalOpen = false} color="white" class="!px-4 !py-2 !text-xs">
+        <Button onclick={() => isBookModalOpen = false} color="white" class="px-4! py-2! text-xs!">
           Batal
         </Button>
-        <Button type="submit" color="green" class="!px-4 !py-2 !text-xs">
+        <Button type="submit" color="green" class="px-4! py-2! text-xs!">
           {modalMode === 'add' ? 'Simpan Buku' : 'Perbarui Buku'}
         </Button>
       </div>

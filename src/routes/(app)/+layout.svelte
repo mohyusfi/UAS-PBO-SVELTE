@@ -2,7 +2,7 @@
   import { library } from '$lib/store.svelte';
   import { goto } from '$app/navigation';
   import Button from '$lib/components/Button.svelte';
-  import Card from '$lib/components/Card.svelte';
+  // import Card from '$lib/components/Card.svelte';
 
   let { children } = $props();
 
@@ -19,10 +19,9 @@
       
       <!-- Brand -->
       <a href="/" class="flex items-center gap-2 group self-start">
-        <div class="bg-neo-yellow neo-border px-3 py-1 font-black text-xl uppercase tracking-wider neo-shadow-sm group-hover:translate-x-[-2px] group-hover:translate-y-[-2px] group-hover:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-all">
-          📚 NEO-LIB
+        <div class="bg-neo-yellow neo-border px-3 py-1 font-black text-xl uppercase tracking-wider neo-shadow-sm group-hover:translate-x-0.5 group-hover:translate-y-0.5 group-hover:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-all">
+          TadikaMesra - LIB
         </div>
-        <span class="font-black text-sm uppercase tracking-wide hidden sm:inline text-gray-500">Kelompok 6</span>
       </a>
 
       <!-- Nav Links -->
@@ -54,13 +53,13 @@
             {library.currentUser.getDisplayInfo()}
           </div>
 
-          <Button onclick={handleLogout} color="pink" class="!px-3 !py-2 !text-xs">
+          <Button onclick={handleLogout} color="pink" class="px-3! py-2! text-xs!">
             Logout
           </Button>
         {:else}
           <!-- Tampil jika belum login -->
           <a href="/login">
-            <Button color="yellow" class="!px-4 !py-2 !text-xs">
+            <Button color="yellow" class="px-4! py-2! text-xs!">
               🔑 Login / Daftar
             </Button>
           </a>
@@ -71,7 +70,7 @@
   </header>
 
   <!-- Main -->
-  <main class="flex-grow max-w-7xl mx-auto w-full p-4 md:p-8">
+  <main class="grow max-w-7xl mx-auto w-full p-4 md:p-8">
     {@render children()}
   </main>
 
@@ -89,12 +88,3 @@
     </div>
   </footer>
 </div>
-
-<style>
-  .neo-border-b {
-    border-bottom: 4px solid #1a1a1a;
-  }
-  .neo-border-t {
-    border-top: 4px solid #1a1a1a;
-  }
-</style>

@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-  <title>NeoLib - Perpustakaan Neo Brutalism</title>
+  <title>TadikaMesra - Perpustakaan</title>
   <meta name="description" content="Aplikasi Perpustakaan Modern dengan Gaya Desain Neo Brutalism." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">

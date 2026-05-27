@@ -32,33 +32,45 @@
   }
 }
 
-/* Neo Brutalism Helper Classes */
-.neo-border {
+/* Neo Brutalism Helper Utilities */
+@utility neo-border {
   border: 3px solid #1a1a1a;
 }
 
-.neo-shadow {
+@utility neo-border-2 {
+  border: 2px solid #1a1a1a;
+}
+
+@utility neo-border-b {
+  border-bottom: 4px solid #1a1a1a;
+}
+
+@utility neo-border-t {
+  border-top: 4px solid #1a1a1a;
+}
+
+@utility neo-shadow {
   box-shadow: 4px 4px 0px 0px #1a1a1a;
 }
 
-.neo-shadow-lg {
+@utility neo-shadow-lg {
   box-shadow: 8px 8px 0px 0px #1a1a1a;
 }
 
-.neo-shadow-sm {
+@utility neo-shadow-sm {
   box-shadow: 2px 2px 0px 0px #1a1a1a;
 }
 
-.neo-interactive {
+@utility neo-interactive {
   transition: all 0.15s ease-in-out;
-}
 
-.neo-interactive:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0px 0px #1a1a1a;
-}
+  &:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px 0px #1a1a1a;
+  }
 
-.neo-interactive:active {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0px 0px #1a1a1a;
+  &:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px 0px #1a1a1a;
+  }
 }

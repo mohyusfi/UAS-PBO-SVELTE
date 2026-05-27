@@ -1,9 +1,8 @@
 # Plan Implementasi OOP - Aplikasi Perpustakaan Neo Brutalism
 
 ## Tujuan
-Mengimplementasikan 3 pilar OOP (**Encapsulation**, **Inheritance**, **Polymorphism**) ke dalam
-arsitektur TypeScript proyek ini. Semua perubahan dilakukan di layer `src/lib/` (logika bisnis),
-halaman Svelte di `src/routes/` hanya menyesuaikan import — **desain Neo Brutalism tidak berubah**.
+Mengimplementasikan 3 pilar OOP (**Encapsulation**, **Inheritance**, **Polymorphism**) ke dalam arsitektur TypeScript proyek ini. Semua perubahan dilakukan di layer `src/lib/` (logika bisnis), halaman Svelte di `src/routes/` hanya menyesuaikan import — **desain Neo Brutalism tidak berubah**.
+Selain itu, menangani keamanan data (defensive programming) agar kebal terhadap struktur data lawas (legacy) pada browser pengguna.
 
 ---
 
@@ -11,9 +10,9 @@ halaman Svelte di `src/routes/` hanya menyesuaikan import — **desain Neo Bruta
 
 | Pilar OOP | Analogi | Implementasi di Proyek |
 |---|---|---|
-| **Encapsulation** | Brankas bank — data di dalam, akses lewat pintu kunci | Field `private`, akses via getter/method |
+| **Encapsulation** | Brankas bank — data di dalam, akses lewat pintu kunci | Field `private`, mutasi stok terkontrol, akses via getter/method |
 | **Inheritance** | Anak mewarisi sifat orang tua | `User` (parent) → `AdminUser` & `CustomerUser` (child) |
-| **Polymorphism** | Tombol "Play" beda behavior di Spotify vs YouTube | Method `getDisplayInfo()` beda output di Admin vs Customer |
+| **Polymorphism** | Tombol "Play" beda behavior di Spotify vs YouTube | Method `canBorrow()` diizinkan untuk Customer, tapi ditolak untuk Admin |
 
 ---
 
@@ -23,10 +22,10 @@ halaman Svelte di `src/routes/` hanya menyesuaikan import — **desain Neo Bruta
 | File | Perubahan |
 |---|---|
 | `src/lib/types.ts` | Dihapus — diganti class OOP di `models/` |
-| `src/lib/store.svelte.ts` | Refactor: pakai class model baru, method tetap sama |
-| `src/lib/schema.ts` | Tetap (validasi Zod tidak berubah) |
+| `src/lib/store.svelte.ts` | Refactor: pakai class model baru, mengelola instance polymorphic |
+| `src/routes/(app)/*` | Penyesuaian layout, routing (seperti `/books/[id]`), dan defensive checks |
 
-### File BARU yang dibuat
+### File BARU yang DIBUAT
 | File | Isi |
 |---|---|
 | `src/lib/models/User.ts` | Abstract class `User` + child `AdminUser`, `CustomerUser` |
@@ -40,103 +39,65 @@ halaman Svelte di `src/routes/` hanya menyesuaikan import — **desain Neo Bruta
 
 ### 1. Encapsulation
 **Lokasi:** `Book.ts`, `BorrowRecord.ts`, `User.ts`
-
 Semua properti data di-set `private`, akses lewat getter (read) dan method (write).
-
 ```typescript
-// Contoh: Book.ts
 class Book {
   private _id: string;
   private _title: string;
   private _stock: number;
 
-  get id(): string { return this._id; }
   get title(): string { return this._title; }
-  get stock(): number { return this._stock; }
   get isAvailable(): boolean { return this._stock > 0; }
 
   deductStock(): boolean { ... }   // controlled mutation
   restoreStock(): void { ... }     // controlled mutation
-  toJSON(): BookData { ... }       // serialization untuk localStorage
 }
 ```
 
 ### 2. Inheritance
 **Lokasi:** `User.ts`
-
-```
-     ┌──────────────┐
-     │  User (base)  │  ← abstract class
-     │ email, name   │
-     │ getRole()     │  ← abstract method
-     └──────┬───────┘
-            │
-     ┌──────┴───────┐
-     │              │
-┌────▼─────┐  ┌────▼──────┐
-│ AdminUser │  │CustomerUser│
-│ role=admin│  │role=customer│
-│ canManage │  │ canBorrow  │
-└──────────┘  └───────────┘
-```
-
 - `User` = abstract class dengan shared properties (email, username) dan abstract method
-- `AdminUser` extends `User` → implements admin-specific logic
-- `CustomerUser` extends `User` → implements customer-specific logic
+- `AdminUser` extends `User` → implementasi admin
+- `CustomerUser` extends `User` → implementasi customer
 
 ### 3. Polymorphism
-**Lokasi:** `User.ts` → method `getDisplayInfo()` dan `getRole()`
-
+**Lokasi:** `User.ts`
 ```typescript
 abstract class User {
   abstract getRole(): 'admin' | 'customer';
-  abstract getDisplayInfo(): string;   // polymorphic
-  abstract canBorrow(): boolean;       // polymorphic
+  abstract canBorrow(): boolean;
 }
 
 class AdminUser extends User {
-  getRole() { return 'admin' as const; }
-  getDisplayInfo() { return `Admin: ${this.username}`; }
   canBorrow() { return false; }  // Admin tidak bisa pinjam
 }
 
 class CustomerUser extends User {
-  getRole() { return 'customer' as const; }
-  getDisplayInfo() { return `Customer: ${this.username}`; }
   canBorrow() { return true; }   // Customer bisa pinjam
 }
 ```
 
-Ini menunjukkan **polymorphism** — method sama (`getDisplayInfo`, `canBorrow`) tapi behavior berbeda tergantung tipe user.
-
 ---
 
 ## Perubahan di store.svelte.ts
-
-Store tetap jadi **satu-satunya class dengan `$state`** (Svelte 5 runes).
-Perbedaannya:
-- `session` menyimpan instance `User` (bukan plain object)
-- Book CRUD menggunakan method dari class `Book`
-- Borrow/return menggunakan method dari class `BorrowRecord`
-- Login/register membuat instance `AdminUser` atau `CustomerUser`
+Store (sebagai Singleton) tetap menggunakan Svelte 5 runes (`$state` dan `$derived`).
+- `currentUser` menyimpan instance dari class `AdminUser` atau `CustomerUser` secara polimorfis, tidak lagi plain object.
+- Book CRUD (Create, Read, Update, Delete) berinteraksi dengan object-object berbasis class.
 
 ---
 
-## Alur Kerja Eksekusi
+## Alur Kerja Eksekusi (Progress Project Saat Ini)
 
-1. **[SELESAI]** Buat `src/lib/models/User.ts` → abstract + 2 child classes
-2. **[SELESAI]** Buat `src/lib/models/Book.ts` → encapsulated book
-3. **[SELESAI]** Buat `src/lib/models/BorrowRecord.ts` → encapsulated record
-4. **[SELESAI]** Buat `src/lib/models/index.ts` → barrel export
-5. **[SELESAI]** Update `src/lib/types.ts` → tambah interface data (untuk JSON serialization)
-6. **[SELESAI]** Refactor `src/lib/store.svelte.ts` → gunakan class model baru
-7. **[SELESAI]** Update halaman Svelte → sesuaikan akses property (getter)
-8. **[SELESAI]** Pindahkan rute `admin` ke dalam grup `(app)/admin` agar mewarisi layout navbar (mendapat margin dan tombol logout).
-9. **[SELESAI]** Verifikasi → `npm run check` dan `npm run build` berhasil tanpa error.
+1. **[SELESAI]** Pembuatan Class Models: `User.ts`, `Book.ts`, `BorrowRecord.ts`.
+2. **[SELESAI]** Refactor `store.svelte.ts` untuk menggunakan metode OOP penuh pada class-class tersebut.
+3. **[SELESAI]** Pemisahan Routing Otentikasi: Rute login dan register kini diisolasi pada grup `(auth)`, sehingga tidak memiliki navigasi utama (Navbar).
+4. **[SELESAI]** Pembuatan Routing Utama Aplikasi: Halaman `/books`, `/admin`, dan `/history` serta rute detail `/books/[id]` kini terstruktur dalam grup `(app)` untuk mewarisi layout navbar secara terpusat.
+5. **[SELESAI]** Navigasi Login Adaptif: Tombol "Login" pada navigasi hanya muncul saat user belum terotentikasi, dan menghilang digantikan "Logout" setelah berhasil masuk.
+6. **[SELESAI]** Keamanan Akses (Access Control): Customer biasa tidak dapat masuk ke dashboard `/admin`, dan Admin dibatasi agar tidak bisa menggunakan fitur pinjam buku.
+7. **[SELESAI]** Data Integrity (Defensive Programming): Mengimplementasikan pemeriksaan ganda (misal: `record.customerEmail && ...`) pada fungsionalitas *search* di seluruh halaman (Katalog Buku, Dashboard Admin, History) untuk mencegah aplikasi crash ketika membaca data `localStorage` versi lama yang korup/belum lengkap.
+8. **[SELESAI]** Pembersihan Antarmuka: Menghapus UI Riwayat Peminjaman dari halaman `/books/[id]` (Detail Buku) untuk tampilan yang lebih fokus dan rapi.
 
 ---
 
-## Catatan
-- Desain Neo Brutalism di Svelte components **TIDAK berubah sama sekali**
-- Semua OOP murni di layer TypeScript (`src/lib/models/`)
-- Store tetap singleton pattern (sudah OOP dari awal)
+## Kesimpulan
+Arsitektur OOP telah terintegrasi sukses dengan pendekatan fungsional/reaktif Svelte 5 (Runes) tanpa merusak keindahan UI **Neo Brutalism**. Bug kritis akibat backward-compatibility `localStorage` telah diselesaikan melalui konsep defensif, dan aplikasi sekarang stabil dan siap digunakan.

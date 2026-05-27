@@ -5,21 +5,21 @@
 
   const members = [
     {
-      name: 'Yusuf',
-      role: 'Project Leader & Fullstack Developer',
+      name: 'MOH. YUSFI LAKHAFIDUN',
+      role: 'FULL STACK VIBE CODER',
       desc: 'Bertanggung jawab atas arsitektur Svelte 5, state management reaktif, dan integrasi validasi data menggunakan Zod.',
       color: 'yellow' as const,
       avatar: '👨‍💻'
     },
     {
-      name: 'Anggota 2',
-      role: 'Brutalist UI/UX Designer',
-      desc: 'Merancang tata letak visual Neo Brutalism yang memiliki kontras tinggi, tegas, dan kaya akan micro-interaction.',
+      name: 'AKSAN MAULANA RAHIM',
+      role: 'LAPORAN',
+      desc: 'Merancang Laporan sesuai standar mengikuti projek yang ada.',
       color: 'pink' as const,
       avatar: '🎨'
     },
     {
-      name: 'Anggota 3',
+      name: 'EBEH',
       role: 'Data Persistence Engineer',
       desc: 'Mengoptimalkan sinkronisasi data localstorage browser dan penataan struktur tipe data TypeScript.',
       color: 'green' as const,
@@ -40,8 +40,8 @@
   <span class="bg-black text-white px-3 py-1 font-black text-xs uppercase tracking-widest self-start select-none">
     {welcomeText}
   </span>
-  <h1 class="text-4xl md:text-6xl font-black uppercase tracking-tight leading-none m-0">
-    NEO-LIBRARY 📖
+  <h1 class="text-4xl md:text-5xl font-black uppercase tracking-tight leading-none m-0">
+    Tadikamesra LIBRARY 
   </h1>
   <p class="font-black text-base md:text-lg max-w-2xl text-gray-800 leading-relaxed m-0">
     Sistem perpustakaan modern bergaya Neo Brutalism. Jelajahi koleksi buku, pinjam secara instan, dan kembalikan tepat waktu!
@@ -50,7 +50,7 @@
   <div class="flex items-center gap-3 flex-wrap mt-2">
     <a href="/books">
       <Button color="pink">
-        🚀 Jelajahi Katalog Buku
+        Jelajahi Katalog Buku
       </Button>
     </a>
   </div>
@@ -63,7 +63,7 @@
     Tentang Kami
   </span>
   <h2 class="text-3xl md:text-5xl font-black uppercase tracking-tight leading-none m-0">
-    KELOMPOK 6 🎓
+    KELOMPOK 6 
   </h2>
   <p class="font-black text-base md:text-lg max-w-2xl leading-relaxed m-0 text-gray-900">
     Kami adalah tim pengembang di balik pembuatan aplikasi NEO-LIB, sistem perpustakaan modern dengan arsitektur reaktif dan desain Neo Brutalism yang premium.
@@ -128,7 +128,7 @@
     Semua data katalog buku dapat Anda kelola secara mandiri. Klik tombol di bawah untuk menjelajahi koleksi perpustakaan.
   </p>
   <a href="/books">
-    <Button color="white" class="!px-6 !py-3">
+    <Button color="white" class="px-6! py-3!">
       📚 Lihat Daftar Buku
     </Button>
   </a>

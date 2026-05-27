@@ -72,7 +72,7 @@
           onclick={onclose}
           class="
             bg-neo-pink text-black neo-border-2 border-black w-8 h-8 flex items-center justify-center font-black rounded-none cursor-pointer
-            hover:bg-red-500 active:translate-x-[1px] active:translate-y-[1px]
+            hover:bg-red-500 active:translate-x-1px active:translate-y-1px
           "
           aria-label="Close modal"
         >

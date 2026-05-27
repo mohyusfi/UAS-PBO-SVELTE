@@ -105,7 +105,7 @@
         onclick={() => handleTabChange('login')}
         class="
           flex-1 py-3 font-black uppercase text-sm tracking-wider neo-border border-b-0 mr-2 transition-all cursor-pointer text-center
-          {activeTab === 'login' ? 'bg-neo-yellow -translate-y-[-4px] relative z-10' : 'bg-neo-bg hover:bg-white'}
+          {activeTab === 'login' ? 'bg-neo-yellow -translate-y-1 relative z-10' : 'bg-neo-bg hover:bg-white'}
         "
       >
         🔐 Masuk
@@ -115,7 +115,7 @@
         onclick={() => handleTabChange('register')}
         class="
           flex-1 py-3 font-black uppercase text-sm tracking-wider neo-border border-b-0 transition-all cursor-pointer text-center
-          {activeTab === 'register' ? 'bg-neo-pink -translate-y-[-4px] relative z-10' : 'bg-neo-bg hover:bg-white'}
+          {activeTab === 'register' ? 'bg-neo-pink -translate-y-1 relative z-10' : 'bg-neo-bg hover:bg-white'}
         "
       >
         📝 Daftar Baru
@@ -123,7 +123,7 @@
     </div>
 
     <!-- Form Panel -->
-    <Card color="white" class="neo-shadow-lg !rounded-t-none">
+    <Card color="white" class="neo-shadow-lg rounded-t-none!">
       
       {#if activeTab === 'login'}
         <div class="text-center mb-6">
