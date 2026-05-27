@@ -1,0 +1,37 @@
+[
+  {
+    "name": "MOH. YUSFI LAKHAFIDUN",
+    "role": "FULL STACK VIBE CODER",
+    "desc": "Bertanggung jawab atas arsitektur Svelte 5, state management reaktif, dan integrasi validasi data menggunakan Zod.",
+    "color": "yellow",
+    "avatar": "👨‍💻"
+  },
+  {
+    "name": "AKSAN MAULANA RAHIM",
+    "role": "Pembuat Laporan",
+    "desc": "Merancang Laporan sesuai standar mengikuti projek yang ada.",
+    "color": "pink",
+    "avatar": "🎨"
+  },
+  {
+    "name": "EKEL",
+    "role": "Perancang UML",
+    "desc": "Membuat class diagram untuk visualisasi setiap entity dalam aplikasi.",
+    "color": "green",
+    "avatar": "💾"
+  },
+  {
+    "name": "Hylmi",
+    "role": "Pembuat Laporan",
+    "desc": "Merancang Laporan sesuai standar mengikuti projek yang ada.",
+    "color": "pink",
+    "avatar": "💾"
+  },
+  {
+    "name": "Syahrull",
+    "role": "Owner TadikaMesra",
+    "desc": "????????????????.",
+    "color": "green",
+    "avatar": "⚠️"
+  }
+]

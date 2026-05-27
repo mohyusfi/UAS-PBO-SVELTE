@@ -1,32 +1,21 @@
 <script lang="ts">
+  import type { ComponentProps } from 'svelte';
   import { library } from '$lib/store.svelte';
   import Card from '$lib/components/Card.svelte';
   import Button from '$lib/components/Button.svelte';
+  import team from './team.json';
 
-  const members = [
-    {
-      name: 'MOH. YUSFI LAKHAFIDUN',
-      role: 'FULL STACK VIBE CODER',
-      desc: 'Bertanggung jawab atas arsitektur Svelte 5, state management reaktif, dan integrasi validasi data menggunakan Zod.',
-      color: 'yellow' as const,
-      avatar: '👨‍💻'
-    },
-    {
-      name: 'AKSAN MAULANA RAHIM',
-      role: 'LAPORAN',
-      desc: 'Merancang Laporan sesuai standar mengikuti projek yang ada.',
-      color: 'pink' as const,
-      avatar: '🎨'
-    },
-    {
-      name: 'EBEH',
-      role: 'Data Persistence Engineer',
-      desc: 'Mengoptimalkan sinkronisasi data localstorage browser dan penataan struktur tipe data TypeScript.',
-      color: 'green' as const,
-      avatar: '💾'
-    }
-    
-  ];
+  type CardColor = NonNullable<ComponentProps<typeof Card>['color']>;
+
+  interface TeamMember {
+    name: string;
+    role: string;
+    desc: string;
+    color: CardColor;
+    avatar: string;
+  }
+
+  const members = team as TeamMember[];
 
   // Polymorphism: getDisplayInfo() beda output per tipe User
   let welcomeText = $derived(
@@ -66,7 +55,7 @@
     KELOMPOK 6 
   </h2>
   <p class="font-black text-base md:text-lg max-w-2xl leading-relaxed m-0 text-gray-900">
-    Kami adalah tim pengembang di balik pembuatan aplikasi NEO-LIB, sistem perpustakaan modern dengan arsitektur reaktif dan desain Neo Brutalism yang premium.
+    Kami adalah tim pengembang di balik pembuatan aplikasi Tadikamesra-Lib, sistem perpustakaan modern dengan arsitektur reaktif dan desain Neo Brutalism yang premium.
   </p>
 </section>
 
@@ -82,8 +71,7 @@
     </p>
   </Card>
 
-  <Card color="white" class="flex flex-col g
-  ap-3">
+  <Card color="white" class="flex flex-col gap-3">
     <div class="flex items-center gap-2">
       <span class="inline-block w-3 h-6 bg-neo-pink neo-border border-black"></span>
       <h3 class="font-black uppercase text-lg m-0">Misi Teknis</h3>
@@ -98,11 +86,11 @@
 <section class="mb-12">
   <div class="flex items-center gap-2 mb-6">
     <span class="inline-block w-4 h-8 bg-neo-green neo-border border-black"></span>
-    <h2 class="text-2xl font-black uppercase tracking-wider m-0">Tim Kelompok 6 👥</h2>
+    <h2 class="text-2xl font-black uppercase tracking-wider m-0">Tim Kelompok 6</h2>
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    {#each members as member}
+    {#each members as member (member.name)}
       <Card interactive={true} color={member.color} class="h-full flex flex-col gap-4">
         <div class="w-16 h-16 rounded-none neo-border bg-white flex items-center justify-center text-3xl neo-shadow-sm select-none">
           {member.avatar}

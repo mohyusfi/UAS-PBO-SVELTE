@@ -105,14 +105,14 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {#each activeBorrowRecords as record}
+      {#each activeBorrowRecords as record (record.id)}
         <div class="neo-border bg-white p-4 neo-shadow flex items-center justify-between gap-4">
           <div class="flex flex-col gap-1">
             <span class="text-xs font-black uppercase text-neo-pink tracking-widest">DIPINJAM</span>
             <h3 class="font-black text-lg text-gray-900 m-0 leading-tight">{record.bookTitle}</h3>
             <p class="text-xs font-bold text-gray-500 m-0">Dipinjam pada: {record.borrowDate}</p>
           </div>
-          <Button onclick={() => handleReturn(record.id)} color="green" class="!py-2 !px-4 !text-xs">
+          <Button onclick={() => handleReturn(record.id)} color="green" class="py-2! px-4! text-xs!">
             Kembalikan
           </Button>
         </div>
@@ -133,19 +133,19 @@
       id="search"
       placeholder="Cari judul, penulis, atau ISBN..."
       bind:value={searchQuery}
-      class="!shadow-sm"
+      class="shadow-sm!"
     />
   </div>
 </div>
 
 <!-- Categories Filter -->
 <div class="flex flex-wrap gap-2 mb-8">
-  {#each categories as category}
+  {#each categories as category (category)}
     <button
       onclick={() => selectedCategory = category}
       class="
         px-4 py-2 font-black uppercase text-xs tracking-wider neo-border neo-shadow-sm transition-all cursor-pointer
-        {selectedCategory === category ? 'bg-neo-pink translate-y-[2px] translate-x-[2px] shadow-none' : 'bg-white hover:bg-neo-bg'}
+        {selectedCategory === category ? 'bg-neo-pink translate-y-0.5 translate-x-0.5 shadow-none' : 'bg-white hover:bg-neo-bg'}
       "
     >
       {category}
@@ -164,7 +164,7 @@
       {@const alreadyBorrowed = activeBorrowedBookIds.has(book.id)}
       <Card interactive={true} color="white" class="h-full flex flex-col justify-between">
         <!-- Cover -->
-        <div class="neo-border border-black w-full aspect-[3/4] flex flex-col items-center justify-center p-6 text-center relative overflow-hidden select-none {categoryColors[book.category] || categoryColors['default']}">
+        <div class="neo-border border-black w-full aspect-3/4 flex flex-col items-center justify-center p-6 text-center relative overflow-hidden select-none {categoryColors[book.category] || categoryColors['default']}">
           <span class="bg-black text-white px-2 py-0.5 text-[9px] font-black uppercase tracking-widest absolute top-2 left-2 neo-border-2 border-black">
             {book.category}
           </span>
@@ -174,7 +174,7 @@
         </div>
 
         <!-- Info -->
-        <div class="flex flex-col gap-2 flex-grow mt-4">
+        <div class="flex flex-col gap-2 grow mt-4">
           <h3 class="font-black text-lg text-gray-900 line-clamp-1 m-0">{book.title}</h3>
           <p class="text-xs font-bold text-gray-500 m-0">Penulis: {book.author}</p>
           <p class="text-xs font-mono text-gray-400 m-0">ISBN: {book.isbn}</p>
@@ -196,7 +196,7 @@
             href="/books/{book.id}"
             class="
               neo-border bg-white hover:bg-neo-bg text-center py-2.5 font-black uppercase text-xs tracking-wider neo-shadow-sm
-              active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all block
+              active:translate-x-px active:translate-y-px active:shadow-none transition-all block
             "
           >
             Detail
@@ -206,7 +206,7 @@
             onclick={() => handleBorrow(book.id)}
             color="yellow"
             disabled={!book.isAvailable || alreadyBorrowed}
-            class="!py-2.5 !text-xs !shadow-sm !w-full"
+            class="py-2.5! text-xs! shadow-sm! w-full!"
           >
             {alreadyBorrowed ? 'Dipinjam' : book.isAvailable ? 'Pinjam' : 'Habis'}
           </Button>

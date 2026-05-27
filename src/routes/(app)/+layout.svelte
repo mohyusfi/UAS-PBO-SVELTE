@@ -60,7 +60,7 @@
           <!-- Tampil jika belum login -->
           <a href="/login">
             <Button color="yellow" class="px-4! py-2! text-xs!">
-              🔑 Login / Daftar
+              Login / Daftar
             </Button>
           </a>
         {/if}
@@ -75,10 +75,10 @@
   </main>
 
   <!-- Footer -->
-  <footer class="bg-[#1a1a1a] text-white p-6 neo-border-t border-black mt-12 text-center">
+  <footer class="bg-[#1a1a1a] text-white py-8 p-6 neo-border-t border-black mt-12 text-center">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
       <p class="font-black uppercase tracking-wider text-sm">
-        © 2026 NEO-LIB - UAS PBO KELOMPOK 6
+        © 2026 TADIKAMESRA-LIB <span class="mx-5"> - </span>    UAS PBO KELOMPOK 6
       </p>
       <div class="flex gap-2">
         <span class="bg-neo-yellow text-black neo-border-2 border-black font-black px-2 py-0.5 text-xs uppercase">SvelteKit</span>

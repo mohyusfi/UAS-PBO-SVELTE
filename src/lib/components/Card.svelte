@@ -35,7 +35,7 @@
   class="
     neo-border p-6 neo-shadow rounded-none text-gray-900 flex flex-col gap-4
     {colorClasses[color]}
-    {interactive ? 'neo-interactive cursor-pointer hover:translate-x-[-4px] hover:translate-y-[-4px] hover:shadow-lg' : ''}
+    {interactive ? 'neo-interactive cursor-pointer hover:-translate-x-1 hover:-translate-y-1 hover:shadow-lg' : ''}
     {className}
   "
 >

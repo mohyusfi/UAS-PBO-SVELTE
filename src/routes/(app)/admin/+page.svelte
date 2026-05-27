@@ -157,7 +157,7 @@
     <div class="flex flex-wrap gap-3 self-start md:self-auto">
       <a
         href="/history"
-        class="neo-border neo-shadow bg-white hover:bg-neo-bg px-5 py-3 font-black uppercase text-sm tracking-wider transition-all"
+        class="neo-border neo-shadow bg-whitem hover:bg-neo-bg px-5 py-3 font-black uppercase text-sm tracking-wider transition-all"
       >
         📜 Lihat Riwayat
       </a>

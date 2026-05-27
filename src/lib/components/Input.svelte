@@ -41,7 +41,7 @@
     {placeholder}
     {required}
     class="
-      w-full px-4 py-3 neo-border neo-shadow-sm font-semibold bg-white text-gray-900 focus:outline-none focus:bg-[#FFF] focus:-translate-x-[1px] focus:-translate-y-[1px] focus:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-all
+      w-full px-4 py-3 neo-border neo-shadow-sm font-semibold bg-white text-gray-900 focus:outline-none focus:bg-[#FFF] focus:-translate-x-px focus:-translate-y-px focus:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-all
       {error ? 'border-neo-pink bg-red-50' : 'border-black'}
     "
     {...rest}

@@ -92,7 +92,7 @@
     <!-- Brand header -->
     <div class="text-center mb-8">
       <div class="bg-neo-yellow neo-border px-4 py-2 font-black text-2xl uppercase tracking-wider neo-shadow inline-block mb-3">
-        📚 NEO-LIB
+        Tadikamesra-LIB
       </div>
       <p class="font-black text-xs uppercase tracking-widest text-gray-500">
         Perpustakaan Kelompok 6
@@ -108,7 +108,7 @@
           {activeTab === 'login' ? 'bg-neo-yellow -translate-y-1 relative z-10' : 'bg-neo-bg hover:bg-white'}
         "
       >
-        🔐 Masuk
+        Masuk
       </button>
       
       <button
@@ -118,7 +118,7 @@
           {activeTab === 'register' ? 'bg-neo-pink -translate-y-1 relative z-10' : 'bg-neo-bg hover:bg-white'}
         "
       >
-        📝 Daftar Baru
+        Daftar Baru
       </button>
     </div>
 
@@ -128,7 +128,7 @@
       {#if activeTab === 'login'}
         <div class="text-center mb-6">
           <h1 class="text-3xl font-black uppercase tracking-wider text-gray-900 m-0">
-            MASUK PERPUSTAKAAN 🔑
+            MASUK PERPUSTAKAAN 
           </h1>
           <p class="font-bold text-xs text-gray-600 mt-2">
             Masukkan email dan password Anda untuk mengakses perpustakaan.
@@ -170,7 +170,7 @@
       {:else}
         <div class="text-center mb-6">
           <h1 class="text-3xl font-black uppercase tracking-wider text-gray-900 m-0">
-            REGISTRASI CUSTOMER 📝
+            REGISTRASI CUSTOMER 
           </h1>
           <p class="font-bold text-xs text-gray-600 mt-2">
             Buat akun baru untuk mulai meminjam koleksi buku perpustakaan.

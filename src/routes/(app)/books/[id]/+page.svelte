@@ -22,14 +22,6 @@
     );
   });
 
-  // Book Category colors for brutalist covers
-  const categoryColors: Record<string, string> = {
-    'Fiksi': 'bg-neo-pink',
-    'Filsafat': 'bg-neo-purple',
-    'Pengembangan Diri': 'bg-neo-green',
-    'default': 'bg-neo-yellow'
-  };
-
   function handleBorrow() {
     if (!book) return;
 
@@ -57,17 +49,18 @@
   }
 </script>
 
-<div class="max-w-4xl mx-auto py-6">
-  
-  <div class="mb-6">
+<div class="max-w-6xl mx-auto py-6">
+
+  <div class="mb-8">
     <a
-      href="/"
+      href="/books"
       class="
-        inline-block neo-border bg-white hover:bg-neo-bg px-4 py-2 font-black uppercase text-xs tracking-wider neo-shadow-sm
-        active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all
+        inline-flex items-center gap-2 neo-border bg-white hover:bg-neo-bg px-4 py-2 font-black uppercase text-xs tracking-wider neo-shadow-sm
+        active:translate-x-px active:translate-y-px active:shadow-none transition-all
       "
     >
-      ← Kembali ke Beranda
+      <span aria-hidden="true">←</span>
+      Kembali ke Katalog
     </a>
   </div>
 
@@ -82,76 +75,154 @@
     </Card>
   {:else}
     <!-- Detail Book Container -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-      
+    <div class="grid grid-cols-1 lg:grid-cols-[minmax(260px,360px)_1fr] gap-8 items-start">
+
       <!-- Column 1: Brutalist Cover Card -->
-      <div class="md:col-span-1">
-        <div class="
-          neo-border border-black w-full aspect-[3/4] flex flex-col items-center justify-center p-6 text-center relative select-none neo-shadow-lg
-          {categoryColors[book.category] || categoryColors['default']}
-        ">
-          <span class="bg-black text-white px-2 py-0.5 text-xs font-black uppercase tracking-widest absolute top-3 left-3 neo-border border-black">
-            {book.category}
-          </span>
-          <div class="text-7xl mb-4">📖</div>
-          <h3 class="font-black text-xl text-black leading-tight uppercase tracking-wider line-clamp-3">{book.title}</h3>
-          <p class="text-xs font-black text-black/75 mt-2">Oleh: {book.author}</p>
+      <aside class="lg:sticky lg:top-24 flex flex-col gap-4">
+        <div
+          class={[
+            'neo-border border-black w-full aspect-3/4 flex flex-col justify-between p-6 text-center relative select-none neo-shadow-lg',
+            {
+              'bg-neo-pink': book.category === 'Fiksi',
+              'bg-neo-purple': book.category === 'Filsafat',
+              'bg-neo-green': book.category === 'Pengembangan Diri',
+              'bg-neo-yellow': !['Fiksi', 'Filsafat', 'Pengembangan Diri'].includes(book.category)
+            }
+          ]}
+        >
+          <div class="flex justify-between items-start gap-3">
+            <span class="bg-black text-white px-2 py-0.5 text-xs font-black uppercase tracking-widest neo-border border-black">
+              {book.category}
+            </span>
+            <span class="bg-white text-black px-2 py-0.5 text-xs font-black uppercase neo-border border-black">
+              #{book.id}
+            </span>
+          </div>
+
+          <div class="flex flex-col items-center justify-center gap-4">
+            <div class="text-7xl leading-none">📖</div>
+            <div>
+              <h3 class="font-black text-2xl text-black leading-tight uppercase tracking-wide line-clamp-4 m-0">
+                {book.title}
+              </h3>
+              <p class="text-xs font-black text-black/75 mt-3 mb-0 uppercase tracking-wider">
+                {book.author}
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 text-left">
+            <div class="neo-border-2 border-black bg-white px-3 py-2">
+              <p class="text-[10px] font-black uppercase text-gray-500 m-0">Stok</p>
+              <p class="text-xl font-black text-black m-0">{book.stock}</p>
+            </div>
+            <div class="neo-border-2 border-black bg-white px-3 py-2">
+              <p class="text-[10px] font-black uppercase text-gray-500 m-0">Dipinjam</p>
+              <p class="text-xl font-black text-black m-0">{book.borrowedCount}</p>
+            </div>
+          </div>
         </div>
-      </div>
+
+        <Card color={book.isAvailable ? 'green' : 'pink'} class="p-4! gap-1!">
+          <p class="text-[10px] font-black uppercase tracking-widest text-gray-700 m-0">
+            Status Buku
+          </p>
+          <p class="text-lg font-black uppercase text-black m-0">
+            {book.isAvailable ? 'Tersedia' : 'Stok Habis'}
+          </p>
+        </Card>
+      </aside>
 
       <!-- Column 2: Detailed Text & Controls -->
-      <div class="md:col-span-2 flex flex-col gap-6">
-        
+      <div class="flex flex-col gap-6">
+
         <!-- Main details -->
-        <Card color="white" class="!gap-2">
-          <span class="bg-neo-purple text-black neo-border-2 border-black font-black px-2 py-0.5 text-xs uppercase self-start">
-            {book.category}
-          </span>
-          <h1 class="text-3xl md:text-5xl font-black uppercase tracking-tight text-gray-900 m-0 mt-2">
-            {book.title}
-          </h1>
-          <p class="text-sm font-bold text-gray-500 m-0">Karya: <strong class="text-black font-black">{book.author}</strong></p>
-          <div class="flex items-center gap-4 mt-2">
-            <span class="font-mono text-xs text-gray-400">ISBN: {book.isbn}</span>
-            <span class="neo-border-2 border-black px-2 py-0.5 text-xs font-black uppercase {book.stock > 0 ? 'bg-neo-green' : 'bg-neo-pink'}">
-              Stok Tersedia: {book.stock} Unit
+        <Card color="white" class="gap-5!">
+          <div class="flex flex-wrap items-center gap-3">
+            <span class="bg-neo-purple text-black neo-border-2 border-black font-black px-3 py-1 text-xs uppercase">
+              {book.category}
             </span>
+            <span
+              class={[
+                'neo-border-2 border-black px-3 py-1 text-xs font-black uppercase',
+                {
+                  'bg-neo-green': book.isAvailable,
+                  'bg-neo-pink': !book.isAvailable
+                }
+              ]}
+            >
+              {book.isAvailable ? `${book.stock} unit tersedia` : 'Persediaan habis'}
+            </span>
+          </div>
+
+          <div class="flex flex-col gap-3">
+            <h1 class="text-3xl md:text-5xl font-black uppercase tracking-tight leading-none text-gray-900 m-0">
+              {book.title}
+            </h1>
+            <p class="text-base font-bold text-gray-600 m-0">
+              Karya <strong class="text-black font-black">{book.author}</strong>
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="neo-border-2 border-black bg-neo-bg px-4 py-3">
+              <p class="text-[10px] font-black uppercase tracking-widest text-gray-500 m-0">ISBN</p>
+              <p class="font-mono text-sm font-black text-black break-all m-0 mt-1">{book.isbn}</p>
+            </div>
+            <div class="neo-border-2 border-black bg-neo-bg px-4 py-3">
+              <p class="text-[10px] font-black uppercase tracking-widest text-gray-500 m-0">Kategori</p>
+              <p class="text-sm font-black uppercase text-black m-0 mt-1">{book.category}</p>
+            </div>
+            <div class="neo-border-2 border-black bg-neo-bg px-4 py-3">
+              <p class="text-[10px] font-black uppercase tracking-widest text-gray-500 m-0">Total Pinjam</p>
+              <p class="text-sm font-black uppercase text-black m-0 mt-1">{book.borrowedCount} kali</p>
+            </div>
           </div>
         </Card>
 
         <!-- Description Box -->
-        <Card color="yellow" class="flex flex-col gap-3">
-          <h3 class="font-black uppercase text-sm tracking-wider m-0 text-gray-800">
-            Deskripsi Buku 📋
-          </h3>
-          <p class="font-bold text-sm md:text-base text-gray-800 leading-relaxed m-0">
+        <Card color="yellow" class="gap-4!">
+          <div class="flex items-center gap-2">
+            <span class="inline-block w-3 h-6 bg-black"></span>
+            <h2 class="font-black uppercase text-base tracking-wider m-0 text-gray-900">
+              Deskripsi Buku
+            </h2>
+          </div>
+          <p class="font-bold text-sm md:text-base text-gray-800 leading-7 m-0">
             {book.description}
           </p>
         </Card>
 
         <!-- Actions -->
-        <div class="flex items-center gap-4">
-          <Button
-            onclick={handleBorrow}
-            color="green"
-            disabled={book.stock <= 0 || alreadyBorrowed}
-            class="!py-3.5 !px-8 !text-sm flex-grow sm:flex-grow-0"
-          >
-            {alreadyBorrowed ? 'Sedang Dipinjam' : book.stock > 0 ? '⚡ Pinjam Buku Ini' : '❌ Persediaan Habis'}
-          </Button>
-          
-          {#if book.stock > 0}
-            <div class="text-xs font-bold text-gray-600 uppercase tracking-wide hidden sm:block">
-              * Segera pinjam sebelum kehabisan stok!
+        <Card color="bg" class="gap-4!">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 class="font-black uppercase text-base tracking-wider m-0 text-gray-900">
+                Peminjaman
+              </h2>
+              <p class="font-bold text-sm text-gray-700 m-0 mt-1">
+                {alreadyBorrowed
+                  ? 'Anda sedang meminjam buku ini.'
+                  : book.isAvailable
+                    ? 'Buku tersedia dan bisa langsung dipinjam.'
+                    : 'Buku belum tersedia untuk dipinjam.'}
+              </p>
             </div>
-          {/if}
-        </div>
+
+            <Button
+              onclick={handleBorrow}
+              color="green"
+              disabled={!book.isAvailable || alreadyBorrowed}
+              class="py-3.5! px-8! text-sm! w-full sm:w-auto"
+            >
+              {alreadyBorrowed ? 'Sedang Dipinjam' : book.isAvailable ? '⚡ Pinjam Buku Ini' : '❌ Persediaan Habis'}
+            </Button>
+          </div>
+        </Card>
 
       </div>
 
     </div>
-
-
   {/if}
 
 </div>
