@@ -5,10 +5,16 @@
   // import Card from '$lib/components/Card.svelte';
 
   let { children } = $props();
+  let isMenuOpen = $state(false);
 
   function handleLogout() {
+    isMenuOpen = false;
     library.logout();
     goto('/login');
+  }
+
+  function closeMenu() {
+    isMenuOpen = false;
   }
 </script>
 
@@ -17,54 +23,98 @@
   <header class="bg-white neo-border-b border-black sticky top-0 z-40 p-4 neo-shadow-sm">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       
-      <!-- Brand -->
-      <a href="/" class="flex items-center gap-2 group self-start">
-        <div class="bg-neo-yellow neo-border px-3 py-1 font-black text-xl uppercase tracking-wider neo-shadow-sm group-hover:translate-x-0.5 group-hover:translate-y-0.5 group-hover:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-all">
-          TadikaMesra - LIB
-        </div>
-      </a>
-
-      <!-- Nav Links -->
-      <div class="flex items-center gap-3 flex-wrap">
-        <a href="/" class="font-black uppercase text-sm tracking-wide px-3 py-2 neo-border bg-white hover:bg-neo-bg transition-all">
-          Home
-        </a>
-        <a href="/books" class="font-black uppercase text-sm tracking-wide px-3 py-2 neo-border bg-white hover:bg-neo-bg transition-all">
-          Katalog Buku
+      <div class="flex items-center justify-between gap-4 md:shrink-0">
+        <a href="/" onclick={closeMenu} class="flex items-center gap-2 group min-w-0">
+          <div class="bg-neo-yellow neo-border px-3 py-1 font-black text-base sm:text-xl uppercase tracking-wider neo-shadow-sm group-hover:translate-x-0.5 group-hover:translate-y-0.5 group-hover:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-all truncate">
+            TadikaMesra - LIB
+          </div>
         </a>
 
-        {#if library.currentUser}
-          <a href="/history" class="font-black uppercase text-sm tracking-wide px-3 py-2 neo-border bg-white hover:bg-neo-bg transition-all">
-            Riwayat
+        <button
+          type="button"
+          class="md:hidden neo-border neo-shadow-sm bg-white hover:bg-neo-bg active:translate-x-px active:translate-y-px active:shadow-none transition-all p-2 cursor-pointer shrink-0"
+          aria-label={isMenuOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'}
+          aria-controls="app-navigation"
+          aria-expanded={isMenuOpen}
+          onclick={() => isMenuOpen = !isMenuOpen}
+        >
+          <span class="sr-only">{isMenuOpen ? 'Tutup menu' : 'Buka menu'}</span>
+          <span class="flex flex-col gap-1.5 w-6">
+            <span class={[
+              'block h-1 bg-black transition-all',
+              { 'translate-y-2.5 rotate-45': isMenuOpen }
+            ]}></span>
+            <span class={[
+              'block h-1 bg-black transition-all',
+              { 'opacity-0': isMenuOpen }
+            ]}></span>
+            <span class={[
+              'block h-1 bg-black transition-all',
+              { '-translate-y-2.5 -rotate-45': isMenuOpen }
+            ]}></span>
+          </span>
+        </button>
+      </div>
+
+
+      <nav
+        id="app-navigation"
+        class={[
+          'md:flex md:items-center md:justify-end md:gap-3 md:grow',
+          {
+            'block': isMenuOpen,
+            'hidden': !isMenuOpen
+          }
+        ]}
+      >
+        <div class="flex flex-col md:flex-row md:items-center md:justify-end gap-3">
+          <a href="/" onclick={closeMenu} class="font-black uppercase text-sm tracking-wide px-3 py-2 neo-border bg-white hover:bg-neo-bg transition-all text-center md:text-left">
+            Home
+          </a>
+          <a href="/books" onclick={closeMenu} class="font-black uppercase text-sm tracking-wide px-3 py-2 neo-border bg-white hover:bg-neo-bg transition-all text-center md:text-left">
+            Katalog Buku
           </a>
 
-          <!-- Polymorphism: canManageBooks() beda per role -->
-          {#if library.currentUser.canManageBooks()}
-            <a href="/admin" class="font-black uppercase text-sm tracking-wide px-3 py-2 neo-border bg-neo-purple hover:bg-[#a19fff] transition-all">
-              Dashboard Admin
+          {#if library.currentUser}
+            <a href="/history" onclick={closeMenu} class="font-black uppercase text-sm tracking-wide px-3 py-2 neo-border bg-white hover:bg-neo-bg transition-all text-center md:text-left">
+              Riwayat
+            </a>
+
+            <!-- Polymorphism: canManageBooks() beda per role -->
+            {#if library.currentUser.canManageBooks()}
+              <a href="/admin" onclick={closeMenu} class="font-black uppercase text-sm tracking-wide px-3 py-2 neo-border bg-neo-purple hover:bg-[#a19fff] transition-all text-center md:text-left">
+                Dashboard Admin
+              </a>
+            {/if}
+          {/if}
+        </div>
+
+        <div class="flex flex-col md:flex-row md:items-center md:justify-end gap-3 mt-3 md:mt-0">
+          {#if library.currentUser}
+            <div
+              class={[
+                'neo-border px-3 py-2 font-black text-xs uppercase tracking-wider text-center',
+                {
+                  'bg-neo-green': library.currentUser.canManageBooks(),
+                  'bg-neo-blue': !library.currentUser.canManageBooks()
+                }
+              ]}
+            >
+              {library.currentUser.getDisplayInfo()}
+            </div>
+
+            <Button onclick={handleLogout} color="pink" class="px-3! py-2! text-xs! w-full md:w-auto">
+              Logout
+            </Button>
+          {:else}
+            <a href="/login" onclick={closeMenu}>
+              <Button color="yellow" class="px-4! py-2! text-xs! w-full md:w-auto">
+                Login / Daftar
+              </Button>
             </a>
           {/if}
-
-          <!-- Polymorphism: getDisplayInfo() beda per role -->
-          <div class="
-            neo-border px-3 py-2 font-black text-xs uppercase tracking-wider
-            {library.currentUser.canManageBooks() ? 'bg-neo-green' : 'bg-neo-blue'}
-          ">
-            {library.currentUser.getDisplayInfo()}
-          </div>
-
-          <Button onclick={handleLogout} color="pink" class="px-3! py-2! text-xs!">
-            Logout
-          </Button>
-        {:else}
-          <!-- Tampil jika belum login -->
-          <a href="/login">
-            <Button color="yellow" class="px-4! py-2! text-xs!">
-              Login / Daftar
-            </Button>
-          </a>
-        {/if}
-      </div>
+        </div>
+      </nav>
 
     </div>
   </header>
