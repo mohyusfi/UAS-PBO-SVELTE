@@ -1,23 +1,10 @@
-// ============================================================
-// STORE.SVELTE.TS — Singleton Store (OOP Pattern)
-// ============================================================
-// LibraryStore menggunakan class-based models:
-//   - Book (encapsulation)
-//   - BorrowRecord (encapsulation)
-//   - User / AdminUser / CustomerUser (inheritance + polymorphism)
-// 
-// Store sendiri adalah contoh Encapsulation:
-//   - Private helper methods (saveBooks, saveRecords, dll)
-//   - Public API yang terkontrol
-// ============================================================
-
 import { PUBLIC_ADMIN_EMAIL, PUBLIC_ADMIN_PASSWORD } from '$env/static/public';
 import type { BookData, BorrowRecordData, CustomerData, UserSessionData } from './types';
 import { Book } from './models/Book';
 import { BorrowRecord } from './models/BorrowRecord';
 import { User, AdminUser, CustomerUser } from './models/User';
 
-// --- Default Seed Data ---
+
 const DEFAULT_BOOKS: BookData[] = [
   {
     id: 'book-1',
@@ -78,11 +65,7 @@ const DEFAULT_BORROW_RECORDS: BorrowRecordData[] = [
   { id: 'rec-4', bookId: 'book-4', bookTitle: 'Atomic Habits', customerName: 'Dewi Lestari', customerEmail: 'dewi@neolib.com', borrowDate: '2026-05-10', returnDate: '2026-05-17', status: 'returned' }
 ];
 
-// ============================================================
-// LibraryStore — Singleton class, Encapsulation pada persistence
-// ============================================================
 class LibraryStore {
-  // Svelte 5 reactive state
   books = $state<Book[]>([]);
   borrowRecords = $state<BorrowRecord[]>([]);
   customers = $state<CustomerData[]>([]);
@@ -92,12 +75,12 @@ class LibraryStore {
     this.initStore();
   }
 
-  // --- Encapsulation: Private initialization & persistence ---
+
 
   private initStore(): void {
     if (typeof window === 'undefined') return;
 
-    // Load Books → class instances
+
     const storedBooks = localStorage.getItem('lib_books');
     if (storedBooks) {
       try {
@@ -179,11 +162,7 @@ class LibraryStore {
     }
   }
 
-  // --- Public API: Authentication ---
 
-  /**
-   * Login — menggunakan Polymorphism untuk membuat AdminUser atau CustomerUser
-   */
   login(email: string, password: string): { success: boolean; error?: string } {
     // 1. Check Admin credentials (dari .env)
     if (email.toLowerCase() === PUBLIC_ADMIN_EMAIL.toLowerCase()) {
@@ -212,9 +191,8 @@ class LibraryStore {
     return { success: false, error: 'Akun tidak terdaftar! Silakan registrasi terlebih dahulu.' };
   }
 
-  /**
-   * Register customer baru — otomatis login sebagai CustomerUser
-   */
+
+
   registerCustomer(username: string, email: string, password: string): { success: boolean; error?: string } {
     if (email.toLowerCase() === PUBLIC_ADMIN_EMAIL.toLowerCase()) {
       return { success: false, error: 'Email ini sudah digunakan!' };
@@ -230,7 +208,7 @@ class LibraryStore {
     this.customers.push({ username, email, password });
     this.saveCustomers();
 
-    this.currentUser = new CustomerUser(username, email); // Inheritance!
+    this.currentUser = new CustomerUser(username, email);
     this.saveSession();
 
     return { success: true };
@@ -241,7 +219,6 @@ class LibraryStore {
     this.saveSession();
   }
 
-  // --- Public API: Book CRUD (Admin only) ---
 
   addBook(bookData: Omit<BookData, 'id' | 'borrowedCount'>): Book {
     const newBook = new Book({

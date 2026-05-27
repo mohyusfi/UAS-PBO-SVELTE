@@ -1,20 +1,5 @@
-// ============================================================
-// USER.ts — Inheritance & Polymorphism
-// ============================================================
-// Abstract class User → AdminUser, CustomerUser
-// 
-// Inheritance : AdminUser & CustomerUser mewarisi User
-// Polymorphism: getRole(), getDisplayInfo(), canBorrow()
-//               punya behavior berbeda di tiap child class
-// Encapsulation: private fields, akses via getter
-// ============================================================
-
 import type { UserSessionData } from '../types';
 
-/**
- * Abstract base class untuk semua user di sistem perpustakaan.
- * Tidak bisa di-instantiate langsung — harus lewat child class.
- */
 export abstract class User {
   private _username: string;
   private _email: string;
@@ -24,7 +9,7 @@ export abstract class User {
     this._email = email;
   }
 
-  // --- Encapsulation: Getter (read-only access) ---
+  
   get username(): string {
     return this._username;
   }
@@ -33,15 +18,12 @@ export abstract class User {
     return this._email;
   }
 
-  // --- Polymorphism: Abstract methods (wajib di-override child) ---
   abstract getRole(): 'admin' | 'customer';
   abstract getDisplayInfo(): string;
   abstract canBorrow(): boolean;
   abstract canManageBooks(): boolean;
 
-  /**
-   * Serialize ke plain object untuk disimpan di localStorage.
-   */
+ 
   toSessionData(): UserSessionData {
     return {
       username: this._username,
@@ -50,10 +32,7 @@ export abstract class User {
     };
   }
 
-  /**
-   * Factory method — buat instance User dari data session yang tersimpan.
-   * Ini contoh polymorphism: satu method, return tipe yang berbeda.
-   */
+
   static fromSessionData(data: UserSessionData): User {
     if (data.role === 'admin') {
       return new AdminUser(data.username, data.email);
@@ -62,10 +41,7 @@ export abstract class User {
   }
 }
 
-/**
- * AdminUser — mewarisi User.
- * Admin bisa kelola buku, TIDAK bisa pinjam buku.
- */
+
 export class AdminUser extends User {
   getRole(): 'admin' {
     return 'admin';
@@ -84,10 +60,7 @@ export class AdminUser extends User {
   }
 }
 
-/**
- * CustomerUser — mewarisi User.
- * Customer bisa pinjam buku, TIDAK bisa kelola katalog.
- */
+
 export class CustomerUser extends User {
   getRole(): 'customer' {
     return 'customer';
@@ -98,10 +71,10 @@ export class CustomerUser extends User {
   }
 
   canBorrow(): boolean {
-    return true; // Customer boleh pinjam buku
+    return true;
   }
 
   canManageBooks(): boolean {
-    return false; // Customer tidak boleh CRUD buku
+    return false;
   }
 }

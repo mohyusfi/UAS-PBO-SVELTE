@@ -1,10 +1,3 @@
-// ============================================================
-// BORROW_RECORD.ts — Encapsulation
-// ============================================================
-// Private fields, status hanya bisa diubah lewat markReturned().
-// Tidak bisa set status = 'returned' langsung dari luar.
-// ============================================================
-
 import type { BorrowRecordData } from '../types';
 
 export class BorrowRecord {
@@ -38,17 +31,12 @@ export class BorrowRecord {
   get returnDate(): string | null { return this._returnDate; }
   get status(): 'borrowed' | 'returned' { return this._status; }
 
-  /** Cek apakah record ini masih aktif dipinjam */
+
   get isBorrowed(): boolean {
     return this._status === 'borrowed';
   }
 
-  // --- Encapsulation: Controlled mutation ---
 
-  /**
-   * Tandai buku sudah dikembalikan. 
-   * Hanya bisa dilakukan sekali (jika masih berstatus 'borrowed').
-   */
   markReturned(): boolean {
     if (this._status === 'returned') return false;
     this._status = 'returned';
@@ -56,9 +44,7 @@ export class BorrowRecord {
     return true;
   }
 
-  /**
-   * Serialize ke plain object untuk localStorage.
-   */
+  
   toJSON(): BorrowRecordData {
     return {
       id: this._id,
@@ -72,16 +58,12 @@ export class BorrowRecord {
     };
   }
 
-  /**
-   * Factory method — buat instance dari plain data.
-   */
+
   static fromJSON(data: BorrowRecordData): BorrowRecord {
     return new BorrowRecord(data);
   }
 
-  /**
-   * Factory method — buat record peminjaman baru.
-   */
+ 
   static create(bookId: string, bookTitle: string, customerName: string, customerEmail: string): BorrowRecord {
     return new BorrowRecord({
       id: `rec-${Date.now()}`,
