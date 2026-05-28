@@ -1,11 +1,3 @@
-// ============================================================
-// TYPES.ts — Plain data interfaces untuk serialization (JSON/localStorage)
-// ============================================================
-// Interface ini digunakan untuk konversi dari/ke class OOP.
-// Class punya method & encapsulation, interface ini cuma "shape" data.
-// ============================================================
-
-/** Plain data shape untuk Book (serialization ke localStorage) */
 export interface BookData {
   id: string;
   title: string;
@@ -14,8 +6,23 @@ export interface BookData {
   description: string;
   category: string;
   coverUrl: string;
+  price: number;
   stock: number;
   borrowedCount: number;
+}
+
+export type BorrowStatus = 'borrowed' | 'returned' | 'overdue';
+export type PaymentMethod = 'cash' | 'transfer' | 'ewallet';
+export type PaymentStatus = 'pending' | 'paid' | 'failed';
+export type FineStatus = 'none' | 'unpaid' | 'paid';
+
+/** Plain data shape untuk Payment */
+export interface PaymentData {
+  id: string;
+  amount: number;
+  method: PaymentMethod;
+  status: PaymentStatus;
+  paidAt: string | null;
 }
 
 /** Plain data shape untuk BorrowRecord */
@@ -27,7 +34,16 @@ export interface BorrowRecordData {
   customerEmail: string;
   borrowDate: string;
   returnDate: string | null;
-  status: 'borrowed' | 'returned';
+  dueDate?: string;
+  lateDays?: number;
+  fineAmount?: number;
+  fineStatus?: FineStatus;
+  borrowPrice?: number;
+  paymentId?: string | null;
+  paymentMethod?: PaymentMethod;
+  paymentStatus?: PaymentStatus;
+  paidAt?: string | null;
+  status: BorrowStatus;
 }
 
 /** Plain data shape untuk User session (disimpan di localStorage) */

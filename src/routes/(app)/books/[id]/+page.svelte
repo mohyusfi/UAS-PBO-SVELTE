@@ -4,13 +4,22 @@
   import { goto } from '$app/navigation';
   import Card from '$lib/components/Card.svelte';
   import Button from '$lib/components/Button.svelte';
+  import { DEFAULT_BORROW_DAYS, addDaysToISODate, todayISO } from '$lib/models/BorrowRecord';
 
   // Obtain book ID from SvelteKit page store params
   let bookId = $derived($page.params.id);
 
   // Find book in store
   let book = $derived(library.books.find(b => b.id === bookId));
+  let estimatedDueDate = $derived(addDaysToISODate(todayISO(), DEFAULT_BORROW_DAYS));
 
+  function formatCurrency(value: number): string {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      maximumFractionDigits: 0
+    }).format(value);
+  }
 
   let alreadyBorrowed = $derived.by(() => {
     if (!library.currentUser || !library.currentUser.canBorrow()) return false;
@@ -22,7 +31,7 @@
     );
   });
 
-  function handleBorrow() {
+  function openPaymentPage() {
     if (!book) return;
 
     if (!library.currentUser) {
@@ -32,19 +41,9 @@
     }
 
     if (library.currentUser.canBorrow()) {
-      executeBorrow(library.currentUser.email);
+      goto(`/books/${book.id}/payment`);
     } else {
       alert('Admin tidak dapat meminjam buku. Silakan gunakan akun customer.');
-    }
-  }
-
-  function executeBorrow(customerEmail: string) {
-    if (!book) return;
-    const success = library.borrowBook(book.id, customerEmail);
-    if (success) {
-      alert('Buku berhasil dipinjam!');
-    } else {
-      alert('Gagal meminjam buku. Stok habis atau Anda sedang meminjam buku ini.');
     }
   }
 </script>
@@ -120,6 +119,10 @@
               <p class="text-[10px] font-black uppercase text-gray-500 m-0">Dipinjam</p>
               <p class="text-xl font-black text-black m-0">{book.borrowedCount}</p>
             </div>
+            <div class="neo-border-2 border-black bg-white px-3 py-2 col-span-2">
+              <p class="text-[10px] font-black uppercase text-gray-500 m-0">Harga Pinjam</p>
+              <p class="text-xl font-black text-black m-0">{formatCurrency(book.price)}</p>
+            </div>
           </div>
         </div>
 
@@ -164,7 +167,7 @@
             </p>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
             <div class="neo-border-2 border-black bg-neo-bg px-4 py-3">
               <p class="text-[10px] font-black uppercase tracking-widest text-gray-500 m-0">ISBN</p>
               <p class="font-mono text-sm font-black text-black break-all m-0 mt-1">{book.isbn}</p>
@@ -176,6 +179,10 @@
             <div class="neo-border-2 border-black bg-neo-bg px-4 py-3">
               <p class="text-[10px] font-black uppercase tracking-widest text-gray-500 m-0">Total Pinjam</p>
               <p class="text-sm font-black uppercase text-black m-0 mt-1">{book.borrowedCount} kali</p>
+            </div>
+            <div class="neo-border-2 border-black bg-neo-bg px-4 py-3">
+              <p class="text-[10px] font-black uppercase tracking-widest text-gray-500 m-0">Harga</p>
+              <p class="text-sm font-black uppercase text-black m-0 mt-1">{formatCurrency(book.price)}</p>
             </div>
           </div>
         </Card>
@@ -195,7 +202,7 @@
 
         <!-- Actions -->
         <Card color="bg" class="gap-4!">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div class="flex flex-col gap-1">
             <div>
               <h2 class="font-black uppercase text-base tracking-wider m-0 text-gray-900">
                 Peminjaman
@@ -204,18 +211,32 @@
                 {alreadyBorrowed
                   ? 'Anda sedang meminjam buku ini.'
                   : book.isAvailable
-                    ? 'Buku tersedia dan bisa langsung dipinjam.'
+                    ? `Bayar ${formatCurrency(book.price)} untuk meminjam selama ${DEFAULT_BORROW_DAYS} hari.`
                     : 'Buku belum tersedia untuk dipinjam.'}
               </p>
+              {#if book.isAvailable && !alreadyBorrowed}
+                <p class="font-bold text-xs text-gray-500 m-0 mt-1">
+                  Estimasi deadline pengembalian: {estimatedDueDate}
+                </p>
+              {/if}
             </div>
+          </div>
 
+          {#if book.isAvailable && !alreadyBorrowed}
+            <div class="neo-border border-black bg-white px-4 py-3">
+              <p class="text-[10px] font-black uppercase tracking-widest text-gray-500 m-0">Total Bayar</p>
+              <p class="text-xl font-black text-black m-0">{formatCurrency(book.price)}</p>
+            </div>
+          {/if}
+
+          <div class="flex justify-end">
             <Button
-              onclick={handleBorrow}
+              onclick={openPaymentPage}
               color="green"
               disabled={!book.isAvailable || alreadyBorrowed}
               class="py-3.5! px-8! text-sm! w-full sm:w-auto"
             >
-              {alreadyBorrowed ? 'Sedang Dipinjam' : book.isAvailable ? '⚡ Pinjam Buku Ini' : '❌ Persediaan Habis'}
+              {alreadyBorrowed ? 'Sedang Dipinjam' : book.isAvailable ? 'Lanjut ke Pembayaran' : 'Persediaan Habis'}
             </Button>
           </div>
         </Card>

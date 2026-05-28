@@ -31,6 +31,7 @@
   let description = $state('');
   let category = $state('Fiksi');
   let coverUrl = $state('');
+  let price = $state<number>(0);
   let stock = $state<number>(1);
 
   // Validation errors
@@ -65,6 +66,7 @@
     description = '';
     category = 'Fiksi';
     coverUrl = '';
+    price = 0;
     stock = 1;
     validationErrors = {};
     isBookModalOpen = true;
@@ -80,6 +82,7 @@
     description = book.description;
     category = book.category;
     coverUrl = book.coverUrl;
+    price = book.price;
     stock = book.stock;
     validationErrors = {};
     isBookModalOpen = true;
@@ -97,6 +100,7 @@
       description,
       category,
       coverUrl,
+      price: Number(price),
       stock: Number(stock)
     };
 
@@ -111,6 +115,7 @@
         description: formatted.description?._errors[0] || '',
         category: formatted.category?._errors[0] || '',
         coverUrl: formatted.coverUrl?._errors[0] || '',
+        price: formatted.price?._errors[0] || '',
         stock: formatted.stock?._errors[0] || ''
       };
       return;
@@ -135,11 +140,37 @@
     }
   }
 
+  function handlePayFine(recordId: string) {
+    const success = library.payFine(recordId);
+    alert(success ? 'Denda berhasil ditandai lunas.' : 'Denda tidak dapat diproses.');
+  }
+
+  function formatCurrency(value: number): string {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      maximumFractionDigits: 0
+    }).format(value);
+  }
+
+  function formatPaymentMethod(method: string): string {
+    const labels: Record<string, string> = {
+      cash: 'Cash',
+      transfer: 'Transfer',
+      ewallet: 'E-Wallet'
+    };
+    return labels[method] ?? method;
+  }
+
   // Statistics calculations
   let totalBooks = $derived(library.books.length);
-  let totalBorrowed = $derived(library.borrowRecords.filter(r => r.status === 'borrowed').length);
+  let totalBorrowed = $derived(library.borrowRecords.filter(r => r.isBorrowed).length);
+  let totalOverdue = $derived(library.borrowRecords.filter(r => r.isOverdue).length);
   let totalStock = $derived(library.books.reduce((acc, b) => acc + b.stock, 0));
   let totalHistory = $derived(library.borrowRecords.length);
+  let totalBorrowRevenue = $derived(library.totalBorrowRevenue);
+  let unpaidFineTotal = $derived(library.unpaidFineTotal);
+  let latestTransactions = $derived(library.borrowRecords.slice(0, 6));
 </script>
 
 {#if isLoaded}
@@ -157,7 +188,7 @@
     <div class="flex flex-wrap gap-3 self-start md:self-auto">
       <a
         href="/history"
-        class="neo-border neo-shadow bg-whitem hover:bg-neo-bg px-5 py-3 font-black uppercase text-sm tracking-wider transition-all"
+        class="neo-border neo-shadow bg-white hover:bg-neo-bg px-5 py-3 font-black uppercase text-sm tracking-wider transition-all"
       >
         📜 Lihat Riwayat
       </a>
@@ -169,7 +200,7 @@
   </div>
 
   <!-- Stats Grid -->
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+  <div class="grid grid-cols-2 lg:grid-cols-6 gap-6 mb-12">
     <Card color="yellow">
       <h4 class="text-xs font-black uppercase tracking-widest text-gray-500 m-0">Total Judul Buku</h4>
       <p class="text-4xl font-black text-black m-0 mt-2">{totalBooks}</p>
@@ -178,13 +209,21 @@
       <h4 class="text-xs font-black uppercase tracking-widest text-gray-500 m-0">Sedang Dipinjam</h4>
       <p class="text-4xl font-black text-black m-0 mt-2">{totalBorrowed} buku</p>
     </Card>
+    <Card color="white">
+      <h4 class="text-xs font-black uppercase tracking-widest text-gray-500 m-0">Overdue</h4>
+      <p class="text-4xl font-black text-black m-0 mt-2">{totalOverdue}</p>
+    </Card>
     <Card color="green">
       <h4 class="text-xs font-black uppercase tracking-widest text-gray-500 m-0">Total Unit Stok</h4>
       <p class="text-4xl font-black text-black m-0 mt-2">{totalStock} unit</p>
     </Card>
     <Card color="purple">
-      <h4 class="text-xs font-black uppercase tracking-widest text-gray-500 m-0">Riwayat Transaksi</h4>
-      <p class="text-4xl font-black text-black m-0 mt-2">{totalHistory} log</p>
+      <h4 class="text-xs font-black uppercase tracking-widest text-gray-500 m-0">Pendapatan</h4>
+      <p class="text-2xl font-black text-black m-0 mt-2">{formatCurrency(totalBorrowRevenue)}</p>
+    </Card>
+    <Card color="blue">
+      <h4 class="text-xs font-black uppercase tracking-widest text-gray-500 m-0">Denda Belum Dibayar</h4>
+      <p class="text-2xl font-black text-black m-0 mt-2">{formatCurrency(unpaidFineTotal)}</p>
     </Card>
   </div>
 
@@ -210,6 +249,7 @@
             <th class="p-4 font-black uppercase text-xs tracking-wider">Judul / Penulis</th>
             <th class="p-4 font-black uppercase text-xs tracking-wider">ISBN</th>
             <th class="p-4 font-black uppercase text-xs tracking-wider">Kategori</th>
+            <th class="p-4 font-black uppercase text-xs tracking-wider text-right">Harga Pinjam</th>
             <th class="p-4 font-black uppercase text-xs tracking-wider text-center">Stok</th>
             <th class="p-4 font-black uppercase text-xs tracking-wider text-center">Total Pinjam</th>
             <th class="p-4 font-black uppercase text-xs tracking-wider text-right">Aksi</th>
@@ -228,6 +268,7 @@
                   {book.category}
                 </span>
               </td>
+              <td class="p-4 text-right font-black text-sm">{formatCurrency(book.price)}</td>
               <td class="p-4 text-center">
                 <span class="neo-border-2 border-black px-2 py-0.5 text-xs font-black uppercase {book.stock > 0 ? 'bg-neo-green/30' : 'bg-neo-pink/30'}">
                   {book.stock}
@@ -243,6 +284,71 @@
                     Hapus
                   </Button>
                 </div>
+              </td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
+  {/if}
+
+  <div class="mt-12 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <h2 class="text-2xl font-black uppercase tracking-wider m-0">Transaksi Terbaru</h2>
+      <p class="font-bold text-sm text-gray-600 m-0 mt-1">{totalHistory} total transaksi tercatat.</p>
+    </div>
+    <a
+      href="/history"
+      class="neo-border neo-shadow bg-white hover:bg-neo-bg px-5 py-3 font-black uppercase text-xs tracking-wider transition-all"
+    >
+      Buka Riwayat Lengkap
+    </a>
+  </div>
+
+  {#if latestTransactions.length > 0}
+    <div class="overflow-x-auto neo-border neo-shadow bg-white rounded-none">
+      <table class="w-full text-left border-collapse min-w-[980px]">
+        <thead>
+          <tr class="bg-[#1a1a1a] text-white border-b-4 border-black">
+            <th class="p-4 font-black uppercase text-xs tracking-wider">Peminjam</th>
+            <th class="p-4 font-black uppercase text-xs tracking-wider">Buku</th>
+            <th class="p-4 font-black uppercase text-xs tracking-wider">Pembayaran</th>
+            <th class="p-4 font-black uppercase text-xs tracking-wider">Deadline</th>
+            <th class="p-4 font-black uppercase text-xs tracking-wider">Denda</th>
+            <th class="p-4 font-black uppercase text-xs tracking-wider text-right">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-black/10">
+          {#each latestTransactions as record (record.id)}
+            <tr class="hover:bg-neo-bg/20">
+              <td class="p-4">
+                <div class="font-black text-sm text-gray-900">{record.customerName}</div>
+                <div class="text-xs font-bold text-gray-500 mt-0.5">{record.customerEmail}</div>
+              </td>
+              <td class="p-4 font-bold text-sm text-gray-800">{record.bookTitle}</td>
+              <td class="p-4">
+                <div class="font-black text-sm text-gray-900">{formatCurrency(record.borrowPrice)}</div>
+                <div class="text-xs font-bold text-gray-500 mt-0.5">
+                  {formatPaymentMethod(record.paymentMethod)} - {record.paymentStatus}
+                </div>
+              </td>
+              <td class="p-4 font-mono text-xs text-gray-500">{record.dueDate}</td>
+              <td class="p-4">
+                <div class="font-black text-sm text-gray-900">{formatCurrency(record.fineAmount)}</div>
+                <div class="text-xs font-bold text-gray-500 mt-0.5">{record.fineStatus}</div>
+                {#if record.status === 'returned' && record.fineStatus === 'unpaid'}
+                  <Button onclick={() => handlePayFine(record.id)} color="green" class="px-3! py-1.5! text-xs! shadow-sm! mt-2">
+                    Tandai Lunas
+                  </Button>
+                {/if}
+              </td>
+              <td class="p-4 text-right">
+                <span class="
+                  neo-border-2 border-black px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider
+                  {record.status === 'returned' ? 'bg-neo-green' : record.status === 'overdue' ? 'bg-neo-pink' : 'bg-neo-yellow'}
+                ">
+                  {record.status}
+                </span>
               </td>
             </tr>
           {/each}
@@ -286,7 +392,7 @@
         />
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Category Selector -->
         <div class="flex flex-col gap-2 w-full">
           <label for="bookCategory" class="font-black text-sm uppercase tracking-wide">
@@ -304,6 +410,16 @@
             <option value="Sejarah">Sejarah</option>
           </select>
         </div>
+
+        <Input
+          id="bookPrice"
+          type="number"
+          label="Harga Pinjam"
+          placeholder="12000"
+          bind:value={price}
+          required={true}
+          error={validationErrors.price}
+        />
 
         <Input
           id="bookStock"

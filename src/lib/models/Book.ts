@@ -16,6 +16,7 @@ export class Book {
   private _description: string;
   private _category: string;
   private _coverUrl: string;
+  private _price: number;
   private _stock: number;
   private _borrowedCount: number;
 
@@ -27,8 +28,14 @@ export class Book {
     this._description = data.description;
     this._category = data.category;
     this._coverUrl = data.coverUrl;
-    this._stock = data.stock;
-    this._borrowedCount = data.borrowedCount;
+    this._price = this.normalizePrice(data.price);
+    this._stock = Math.max(0, Number(data.stock) || 0);
+    this._borrowedCount = Math.max(0, Number(data.borrowedCount) || 0);
+  }
+
+  private normalizePrice(price: number | undefined): number {
+    if (!Number.isFinite(price)) return 0;
+    return Math.max(0, Math.round(Number(price)));
   }
 
   // --- Encapsulation: Read-only getters ---
@@ -39,6 +46,7 @@ export class Book {
   get description(): string { return this._description; }
   get category(): string { return this._category; }
   get coverUrl(): string { return this._coverUrl; }
+  get price(): number { return this._price; }
   get stock(): number { return this._stock; }
   get borrowedCount(): number { return this._borrowedCount; }
 
@@ -67,6 +75,13 @@ export class Book {
   }
 
   /**
+   * Update harga buku dengan validasi agar tidak bernilai negatif.
+   */
+  updatePrice(price: number): void {
+    this._price = this.normalizePrice(price);
+  }
+
+  /**
    * Update detail buku (hanya field yang diberikan).
    */
   updateDetails(fields: Partial<Omit<BookData, 'id' | 'borrowedCount'>>): void {
@@ -76,7 +91,8 @@ export class Book {
     if (fields.description !== undefined) this._description = fields.description;
     if (fields.category !== undefined) this._category = fields.category;
     if (fields.coverUrl !== undefined) this._coverUrl = fields.coverUrl;
-    if (fields.stock !== undefined) this._stock = fields.stock;
+    if (fields.price !== undefined) this.updatePrice(fields.price);
+    if (fields.stock !== undefined) this._stock = Math.max(0, Number(fields.stock) || 0);
   }
 
   /**
@@ -91,6 +107,7 @@ export class Book {
       description: this._description,
       category: this._category,
       coverUrl: this._coverUrl,
+      price: this._price,
       stock: this._stock,
       borrowedCount: this._borrowedCount
     };

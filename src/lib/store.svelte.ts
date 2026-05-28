@@ -1,8 +1,24 @@
 import { PUBLIC_ADMIN_EMAIL, PUBLIC_ADMIN_PASSWORD } from '$env/static/public';
-import type { BookData, BorrowRecordData, CustomerData, UserSessionData } from './types';
+import type { BookData, BorrowRecordData, CustomerData, PaymentMethod, UserSessionData } from './types';
 import { Book } from './models/Book';
 import { BorrowRecord } from './models/BorrowRecord';
+import { Payment } from './models/Payment';
 import { User, AdminUser, CustomerUser } from './models/User';
+
+interface BorrowBookResult {
+  success: boolean;
+  error?: string;
+  record?: BorrowRecord;
+  payment?: Payment;
+}
+
+interface ReturnBookResult {
+  success: boolean;
+  error?: string;
+  record?: BorrowRecord;
+  lateDays?: number;
+  fineAmount?: number;
+}
 
 
 const DEFAULT_BOOKS: BookData[] = [
@@ -14,6 +30,7 @@ const DEFAULT_BOOKS: BookData[] = [
     description: 'Bumi adalah novel petualangan dunia paralel karya Tere Liye. Novel ini menceritakan petualangan tiga remaja, Raib, Seli, dan Ali yang memiliki kemampuan istimewa untuk menjelajah ke dunia bawah tanah (Klan Bulan).',
     category: 'Fiksi',
     coverUrl: '',
+    price: 12000,
     stock: 5,
     borrowedCount: 2
   },
@@ -25,6 +42,7 @@ const DEFAULT_BOOKS: BookData[] = [
     description: 'Filosofi Teras adalah buku pengantar filsafat Stoisisme yang dikemas secara populer dan praktis untuk kehidupan sehari-hari, membantu mengendalikan emosi negatif dan menemukan ketenangan hidup.',
     category: 'Filsafat',
     coverUrl: '',
+    price: 10000,
     stock: 3,
     borrowedCount: 1
   },
@@ -36,6 +54,7 @@ const DEFAULT_BOOKS: BookData[] = [
     description: 'Laskar Pelangi bercerita tentang kehidupan 10 anak dari keluarga miskin di Pulau Belitung yang bersekolah di sebuah sekolah Muhammadiyah yang terancam ditutup, berjuang menggapai mimpi mereka.',
     category: 'Fiksi',
     coverUrl: '',
+    price: 11000,
     stock: 4,
     borrowedCount: 0
   },
@@ -47,6 +66,7 @@ const DEFAULT_BOOKS: BookData[] = [
     description: 'Atomic Habits menyajikan panduan praktis berdasarkan sains untuk membangun kebiasaan baik dan menghilangkan kebiasaan buruk dengan memanfaatkan perubahan kecil 1% setiap harinya.',
     category: 'Pengembangan Diri',
     coverUrl: '',
+    price: 15000,
     stock: 6,
     borrowedCount: 1
   }
@@ -59,10 +79,10 @@ const DEFAULT_CUSTOMERS: CustomerData[] = [
 ];
 
 const DEFAULT_BORROW_RECORDS: BorrowRecordData[] = [
-  { id: 'rec-1', bookId: 'book-1', bookTitle: 'Bumi', customerName: 'Budi Santoso', customerEmail: 'budi@neolib.com', borrowDate: '2026-05-20', returnDate: null, status: 'borrowed' },
-  { id: 'rec-2', bookId: 'book-1', bookTitle: 'Bumi', customerName: 'Rina Wijaya', customerEmail: 'rina@neolib.com', borrowDate: '2026-05-22', returnDate: null, status: 'borrowed' },
-  { id: 'rec-3', bookId: 'book-2', bookTitle: 'Filosofi Teras', customerName: 'Budi Santoso', customerEmail: 'budi@neolib.com', borrowDate: '2026-05-18', returnDate: null, status: 'borrowed' },
-  { id: 'rec-4', bookId: 'book-4', bookTitle: 'Atomic Habits', customerName: 'Dewi Lestari', customerEmail: 'dewi@neolib.com', borrowDate: '2026-05-10', returnDate: '2026-05-17', status: 'returned' }
+  { id: 'rec-1', bookId: 'book-1', bookTitle: 'Bumi', customerName: 'Budi Santoso', customerEmail: 'budi@neolib.com', borrowDate: '2026-05-20', returnDate: null, borrowPrice: 12000, paymentId: 'pay-seed-1', paymentMethod: 'ewallet', paymentStatus: 'paid', paidAt: '2026-05-20', status: 'borrowed' },
+  { id: 'rec-2', bookId: 'book-1', bookTitle: 'Bumi', customerName: 'Rina Wijaya', customerEmail: 'rina@neolib.com', borrowDate: '2026-05-22', returnDate: null, borrowPrice: 12000, paymentId: 'pay-seed-2', paymentMethod: 'transfer', paymentStatus: 'paid', paidAt: '2026-05-22', status: 'borrowed' },
+  { id: 'rec-3', bookId: 'book-2', bookTitle: 'Filosofi Teras', customerName: 'Budi Santoso', customerEmail: 'budi@neolib.com', borrowDate: '2026-05-18', returnDate: null, borrowPrice: 10000, paymentId: 'pay-seed-3', paymentMethod: 'cash', paymentStatus: 'paid', paidAt: '2026-05-18', status: 'borrowed' },
+  { id: 'rec-4', bookId: 'book-4', bookTitle: 'Atomic Habits', customerName: 'Dewi Lestari', customerEmail: 'dewi@neolib.com', borrowDate: '2026-05-10', returnDate: '2026-05-17', borrowPrice: 15000, paymentId: 'pay-seed-4', paymentMethod: 'ewallet', paymentStatus: 'paid', paidAt: '2026-05-10', status: 'returned' }
 ];
 
 class LibraryStore {
@@ -75,7 +95,29 @@ class LibraryStore {
     this.initStore();
   }
 
+  private withBookDefaults(data: BookData): BookData {
+    const fallback = DEFAULT_BOOKS.find(
+      (book) => book.id === data.id || book.isbn === data.isbn || book.title === data.title
+    );
 
+    return {
+      ...data,
+      price: data.price ?? fallback?.price ?? 0
+    };
+  }
+
+  private withBorrowRecordDefaults(data: BorrowRecordData): BorrowRecordData {
+    const book = this.books.find((item) => item.id === data.bookId);
+
+    return {
+      ...data,
+      borrowPrice: data.borrowPrice ?? book?.price ?? 0,
+      paymentId: data.paymentId ?? `pay-legacy-${data.id}`,
+      paymentMethod: data.paymentMethod ?? 'cash',
+      paymentStatus: data.paymentStatus ?? 'paid',
+      paidAt: data.paidAt ?? data.borrowDate
+    };
+  }
 
   private initStore(): void {
     if (typeof window === 'undefined') return;
@@ -85,7 +127,8 @@ class LibraryStore {
     if (storedBooks) {
       try {
         const parsed: BookData[] = JSON.parse(storedBooks);
-        this.books = parsed.map(Book.fromJSON);
+        this.books = parsed.map((book) => Book.fromJSON(this.withBookDefaults(book)));
+        this.saveBooks();
       } catch {
         this.books = DEFAULT_BOOKS.map(Book.fromJSON);
       }
@@ -112,7 +155,8 @@ class LibraryStore {
     if (storedRecords) {
       try {
         const parsed: BorrowRecordData[] = JSON.parse(storedRecords);
-        this.borrowRecords = parsed.map(BorrowRecord.fromJSON);
+        this.borrowRecords = parsed.map((record) => BorrowRecord.fromJSON(this.withBorrowRecordDefaults(record)));
+        this.saveRecords();
       } catch {
         this.borrowRecords = DEFAULT_BORROW_RECORDS.map(BorrowRecord.fromJSON);
       }
@@ -244,18 +288,45 @@ class LibraryStore {
     this.saveBooks();
   }
 
+  get activeBorrowRecords(): BorrowRecord[] {
+    return this.borrowRecords.filter((record) => record.isBorrowed);
+  }
+
+  get overdueBorrowRecords(): BorrowRecord[] {
+    return this.borrowRecords.filter((record) => record.isOverdue);
+  }
+
+  get totalBorrowRevenue(): number {
+    return this.borrowRecords
+      .filter((record) => record.paymentStatus === 'paid')
+      .reduce((total, record) => total + record.borrowPrice, 0);
+  }
+
+  get unpaidFineTotal(): number {
+    return this.borrowRecords
+      .filter((record) => record.status === 'returned' && record.fineStatus === 'unpaid')
+      .reduce((total, record) => total + record.fineAmount, 0);
+  }
+
   // --- Public API: Borrowing (Customer only) ---
 
   /**
    * Pinjam buku — menggunakan method encapsulated dari Book & BorrowRecord
    */
-  borrowBook(bookId: string, customerEmail: string): boolean {
+  borrowBook(bookId: string, customerEmail: string, paymentMethod: PaymentMethod = 'ewallet'): BorrowBookResult {
+    if (!this.currentUser || !this.currentUser.canBorrow()) {
+      return { success: false, error: 'Hanya customer yang dapat meminjam buku.' };
+    }
+
     const book = this.books.find(b => b.id === bookId);
-    if (!book || !book.isAvailable) return false; // Encapsulation: cek via getter
+    if (!book) return { success: false, error: 'Buku tidak ditemukan.' };
+    if (!book.isAvailable) return { success: false, error: 'Stok buku habis.' }; // Encapsulation: cek via getter
 
     const customer = this.customers.find(
       c => c.email.toLowerCase() === customerEmail.toLowerCase()
     );
+    if (!customer) return { success: false, error: 'Data customer tidak ditemukan.' };
+
     const customerName = customer ? customer.username : 'Customer';
 
     // Cek duplikat pinjam
@@ -264,31 +335,43 @@ class LibraryStore {
         r.customerEmail && r.customerEmail.toLowerCase() === customerEmail.toLowerCase() &&
         r.isBorrowed // Encapsulation: cek via getter
     );
-    if (alreadyBorrowed) return false;
+    if (alreadyBorrowed) {
+      return { success: false, error: 'Anda sedang meminjam buku ini.' };
+    }
+
+    const payment = Payment.create(book.price, paymentMethod);
+    payment.markPaid();
+
+    if (!payment.isPaid) {
+      payment.markFailed();
+      return { success: false, error: 'Pembayaran gagal diproses.', payment };
+    }
 
     // Kurangi stok via method (Encapsulation)
-    if (!book.deductStock()) return false;
+    if (!book.deductStock()) {
+      return { success: false, error: 'Stok buku habis.' };
+    }
     this.books = [...this.books];
     this.saveBooks();
 
     // Buat record via factory method
-    const record = BorrowRecord.create(bookId, book.title, customerName, customerEmail);
+    const record = BorrowRecord.create(bookId, book.title, customerName, customerEmail, payment.toJSON());
     this.borrowRecords.unshift(record);
     this.borrowRecords = [...this.borrowRecords];
     this.saveRecords();
 
-    return true;
+    return { success: true, record, payment };
   }
 
   /**
    * Kembalikan buku — menggunakan method encapsulated
    */
-  returnBook(recordId: string): boolean {
+  returnBook(recordId: string): ReturnBookResult {
     const record = this.borrowRecords.find(r => r.id === recordId);
-    if (!record) return false;
+    if (!record) return { success: false, error: 'Transaksi tidak ditemukan.' };
 
     // Tandai dikembalikan via method (Encapsulation)
-    if (!record.markReturned()) return false;
+    if (!record.markReturned()) return { success: false, error: 'Buku sudah dikembalikan.' };
     this.borrowRecords = [...this.borrowRecords];
     this.saveRecords();
 
@@ -300,7 +383,25 @@ class LibraryStore {
       this.saveBooks();
     }
 
-    return true;
+    return {
+      success: true,
+      record,
+      lateDays: record.lateDays,
+      fineAmount: record.fineAmount
+    };
+  }
+
+  payFine(recordId: string): boolean {
+    const record = this.borrowRecords.find(r => r.id === recordId);
+    if (!record) return false;
+
+    const success = record.markFinePaid();
+    if (success) {
+      this.borrowRecords = [...this.borrowRecords];
+      this.saveRecords();
+    }
+
+    return success;
   }
 }
 

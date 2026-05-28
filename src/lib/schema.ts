@@ -22,6 +22,7 @@ export const bookSchema = z.object({
   description: z.string().min(10, { message: 'Deskripsi minimal 10 karakter' }),
   category: z.string().min(2, { message: 'Kategori harus dipilih' }),
   coverUrl: z.url({ message: 'URL Cover harus berupa link URL yang valid' }).or(z.literal('')),
+  price: z.number().int().min(0, { message: 'Harga tidak boleh negatif' }),
   stock: z.number().int().min(0, { message: 'Stok tidak boleh negatif' })
 });
 
