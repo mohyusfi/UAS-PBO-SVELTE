@@ -2,7 +2,7 @@
 
 ## Tujuan
 Mengimplementasikan 3 pilar OOP (**Encapsulation**, **Inheritance**, **Polymorphism**) ke dalam arsitektur TypeScript proyek ini. Semua perubahan dilakukan di layer `src/lib/` (logika bisnis), halaman Svelte di `src/routes/` hanya menyesuaikan import — **desain Neo Brutalism tidak berubah**.
-Selain itu, menangani keamanan data (defensive programming) agar kebal terhadap struktur data lawas (legacy) pada browser pengguna.
+Selain itu, menangani keamanan data (defensive programming) agar kebal terhadap struktur data lawas (legacy) dan memindahkan penyimpanan utama dari `localStorage` ke file JSON bersama di sisi server aplikasi.
 Pengembangan berikutnya menambahkan harga pada setiap buku, fitur pembayaran saat peminjaman, transaksi buku, deadline peminjaman, dan biaya tambahan/denda jika buku terlambat dikembalikan.
 
 ---
@@ -22,8 +22,10 @@ Pengembangan berikutnya menambahkan harga pada setiap buku, fitur pembayaran saa
 ### File yang DIUBAH / DIRENCANAKAN DIUBAH
 | File | Perubahan |
 |---|---|
-| `src/lib/types.ts` | Interface serialisasi JSON/localStorage; ditambah field `price`, transaksi, deadline, data pembayaran peminjaman, status pembayaran denda, dan nominal denda |
-| `src/lib/store.svelte.ts` | Refactor: pakai class model baru, mengelola instance polymorphic, validasi pembayaran sebelum peminjaman |
+| `src/lib/types.ts` | Interface serialisasi JSON untuk data buku, customer, transaksi, pembayaran, deadline, status pembayaran denda, dan nominal denda |
+| `src/lib/store.svelte.ts` | Refactor: pakai class model baru, mengelola instance polymorphic, validasi pembayaran sebelum peminjaman, dan sinkronisasi data lewat API server |
+| `src/routes/api/library/+server.ts` | Endpoint server untuk membaca dan menyimpan data perpustakaan bersama dari file JSON |
+| `src/lib/server/libraryStorage.ts` | Helper server-side untuk read/write file JSON secara aman tanpa database |
 | `src/routes/(app)/*` | Penyesuaian layout, routing (seperti `/books/[id]`), dan defensive checks |
 | `src/lib/models/Book.ts` | Ditambah field harga buku (`price`) dengan getter dan validasi update harga |
 | `src/lib/models/BorrowRecord.ts` | Ditambah `dueDate`, `lateDays`, `fineAmount`, data pembayaran peminjaman, dan method kalkulasi denda |
@@ -41,6 +43,7 @@ Pengembangan berikutnya menambahkan harga pada setiap buku, fitur pembayaran saa
 | `src/lib/models/BookTransaction.ts` | Tidak dibuat terpisah — peran transaksi diimplementasikan dengan memperkaya class `BorrowRecord` |
 | `src/lib/models/Payment.ts` | Class pembayaran untuk mencatat nominal, metode, status, dan waktu pembayaran |
 | `src/lib/models/index.ts` | Barrel export semua models |
+| `data/library.json` | File JSON bersama untuk menyimpan `books`, `customers`, dan `borrowRecords` agar data sama di semua browser |
 
 ---
 
@@ -95,11 +98,55 @@ class CustomerUser extends User {
 Store (sebagai Singleton) tetap menggunakan Svelte 5 runes (`$state` dan `$derived`).
 - `currentUser` menyimpan instance dari class `AdminUser` atau `CustomerUser` secara polimorfis, tidak lagi plain object.
 - Book CRUD (Create, Read, Update, Delete) berinteraksi dengan object-object berbasis class.
+- Data utama tidak lagi disimpan ke `localStorage`; store mengambil data dari endpoint `/api/library` dan menyimpan perubahan lewat request ke server.
 - Setiap data buku memiliki `price` sebagai biaya peminjaman yang wajib dibayar customer sebelum transaksi aktif.
 - Transaksi buku dibuat saat customer berhasil meminjam buku, lalu disimpan sebagai record aktif.
 - `borrowBook()` dipanggil dari halaman pembayaran, menerima metode pembayaran, memvalidasi pembayaran, lalu menghitung `borrowDate` dan `dueDate` otomatis berdasarkan durasi pinjaman.
 - `returnBook()` menghitung keterlambatan sebelum menutup transaksi dan mengembalikan stok buku.
 - Store menyediakan derived data untuk transaksi aktif, transaksi terlambat, riwayat transaksi, total pembayaran peminjaman, dan total denda customer.
+
+---
+
+## Perubahan Penyimpanan: JSON Server-Side Tanpa Database
+
+### Masalah Saat Ini
+`localStorage` hanya tersimpan di browser masing-masing. Jika admin menambahkan buku dari Browser A, Browser B tidak otomatis memiliki data tersebut karena Browser B membaca `localStorage` miliknya sendiri.
+
+### Solusi yang Dipakai
+Gunakan satu file JSON bersama di sisi server aplikasi, bukan database. Semua browser membaca dan menulis data melalui API SvelteKit sehingga sumber datanya sama.
+
+| Komponen | Peran |
+|---|---|
+| `data/library.json` | Penyimpanan utama bersama untuk data buku, customer, dan transaksi |
+| `src/lib/server/libraryStorage.ts` | Membaca file JSON, memberi default data awal, validasi bentuk data, dan menulis ulang file secara aman |
+| `src/routes/api/library/+server.ts` | API `GET` untuk mengambil semua data dan `PUT`/`PATCH` untuk menyimpan perubahan |
+| `src/lib/store.svelte.ts` | Client store melakukan `fetch('/api/library')`, mengubah plain JSON menjadi instance class, lalu menyimpan perubahan lewat API |
+
+### Struktur Data File JSON
+```json
+{
+  "books": [],
+  "customers": [],
+  "borrowRecords": []
+}
+```
+
+### Aturan Penyimpanan
+1. `localStorage` tidak dipakai untuk data utama seperti buku, customer, dan transaksi.
+2. Session login boleh tetap disimpan per-browser karena session memang milik masing-masing pengguna.
+3. Setelah admin menambah/mengubah/menghapus buku, store mengirim data terbaru ke `/api/library`.
+4. Browser lain mengambil data terbaru dari `/api/library` saat halaman dibuka, saat tombol refresh data ditekan, atau lewat polling ringan berkala.
+5. Penulisan file dilakukan server dengan alur read -> validasi -> write temp file -> rename agar file JSON tidak mudah korup saat proses tulis.
+6. Tidak ada database, ORM, atau koneksi server database.
+
+### Dampak ke Alur Admin
+1. Admin di Browser A menambah buku.
+2. Store mengubah instance `Book`, lalu mengirim hasil `toJSON()` ke endpoint server.
+3. Server menyimpan data ke `data/library.json`.
+4. Browser B memanggil `GET /api/library` dan mendapatkan daftar buku terbaru dari file yang sama.
+
+### Catatan Deploy
+Pendekatan file JSON cocok untuk aplikasi tugas, demo lokal, atau server Node yang punya akses tulis ke filesystem. Jika aplikasi dideploy ke platform serverless yang filesystem-nya tidak persisten, data dapat hilang setelah redeploy/restart. Batasan ini bukan database, tetapi konsekuensi penyimpanan berbasis file.
 
 ---
 
@@ -207,7 +254,7 @@ class BookTransaction {
 | `/admin` | Total pendapatan peminjaman, daftar pembayaran berhasil/gagal, dan filter berdasarkan metode pembayaran |
 
 ### Defensive Programming untuk Data Lama
-Karena data buku lama di `localStorage` belum memiliki `price`, proses `fromJSON()` wajib memberi default aman. Karena data record lama juga belum memiliki field pembayaran, transaksi lama dianggap sudah valid tanpa memaksa customer membayar ulang.
+Karena data buku lama hasil migrasi dari `localStorage` atau file JSON lama belum memiliki `price`, proses `fromJSON()` wajib memberi default aman. Karena data record lama juga belum memiliki field pembayaran, transaksi lama dianggap sudah valid tanpa memaksa customer membayar ulang.
 
 ```typescript
 price: data.price ?? 0,
@@ -280,7 +327,7 @@ class BookTransaction {
    - `status` = `borrowed`
    - `fineAmount` = `0`
    - `fineStatus` = `none`
-9. Transaksi disimpan ke `localStorage` melalui `toJSON()`.
+9. Transaksi disimpan ke file JSON bersama melalui API server setelah data class diubah menjadi plain object dengan `toJSON()`.
 
 ### Alur Pengembalian Buku
 1. Customer atau admin memilih transaksi aktif.
@@ -308,7 +355,7 @@ class BookTransaction {
 | Modal pengembalian | Konfirmasi denda jika buku dikembalikan melewati deadline |
 
 ### Defensive Programming untuk Data Lama
-Karena data lama di `localStorage` belum memiliki field `dueDate`, `lateDays`, `fineAmount`, `fineStatus`, dan field pembayaran, proses `fromJSON()` wajib memberi default aman:
+Karena data lama hasil migrasi dari `localStorage` atau file JSON lama belum memiliki field `dueDate`, `lateDays`, `fineAmount`, `fineStatus`, dan field pembayaran, proses `fromJSON()` wajib memberi default aman:
 
 ```typescript
 dueDate: data.dueDate ?? addDays(data.borrowDate, 7),
@@ -331,7 +378,7 @@ Dengan cara ini, data lama tetap bisa dibaca tanpa membuat aplikasi crash.
 4. **[SELESAI]** Pembuatan Routing Utama Aplikasi: Halaman `/books`, `/admin`, dan `/history` serta rute detail `/books/[id]` kini terstruktur dalam grup `(app)` untuk mewarisi layout navbar secara terpusat.
 5. **[SELESAI]** Navigasi Login Adaptif: Tombol "Login" pada navigasi hanya muncul saat user belum terotentikasi, dan menghilang digantikan "Logout" setelah berhasil masuk.
 6. **[SELESAI]** Keamanan Akses (Access Control): Customer biasa tidak dapat masuk ke dashboard `/admin`, dan Admin dibatasi agar tidak bisa menggunakan fitur pinjam buku.
-7. **[SELESAI]** Data Integrity (Defensive Programming): Mengimplementasikan pemeriksaan ganda (misal: `record.customerEmail && ...`) pada fungsionalitas *search* di seluruh halaman (Katalog Buku, Dashboard Admin, History) untuk mencegah aplikasi crash ketika membaca data `localStorage` versi lama yang korup/belum lengkap.
+7. **[SELESAI]** Data Integrity (Defensive Programming): Mengimplementasikan pemeriksaan ganda (misal: `record.customerEmail && ...`) pada fungsionalitas *search* di seluruh halaman (Katalog Buku, Dashboard Admin, History) untuk mencegah aplikasi crash ketika membaca data versi lama yang korup/belum lengkap.
 8. **[SELESAI]** Pembersihan Antarmuka: Menghapus UI Riwayat Peminjaman dari halaman `/books/[id]` (Detail Buku) untuk tampilan yang lebih fokus dan rapi.
 9. **[SELESAI]** Menambahkan harga peminjaman pada setiap data buku.
 10. **[SELESAI]** Menambahkan fitur pembayaran pada halaman khusus `/books/[id]/payment`.
@@ -340,8 +387,9 @@ Dengan cara ini, data lama tetap bisa dibaca tanpa membuat aplikasi crash.
 13. **[SELESAI]** Menambahkan perhitungan denda keterlambatan berdasarkan jumlah hari terlambat.
 14. **[SELESAI]** Menambahkan tampilan status pembayaran, status overdue, total pembayaran peminjaman, dan total denda pada halaman History dan Admin.
 15. **[SELESAI]** Memisahkan pilihan metode pembayaran dari card katalog buku agar pembayaran hanya dilakukan di halaman pembayaran.
+16. **[SELESAI]** Mengganti penyimpanan utama dari `localStorage` menjadi file JSON bersama melalui API server agar perubahan admin terlihat di browser lain tanpa memakai database.
 
 ---
 
 ## Kesimpulan
-Arsitektur OOP telah terintegrasi sukses dengan pendekatan fungsional/reaktif Svelte 5 (Runes) tanpa merusak keindahan UI **Neo Brutalism**. Bug kritis akibat backward-compatibility `localStorage` telah diselesaikan melalui konsep defensif, dan aplikasi sekarang stabil sebagai fondasi untuk fitur harga buku, pembayaran peminjaman, transaksi buku, deadline pinjaman, serta denda keterlambatan.
+Arsitektur OOP telah terintegrasi sukses dengan pendekatan fungsional/reaktif Svelte 5 (Runes) tanpa merusak keindahan UI **Neo Brutalism**. Bug kritis akibat backward-compatibility data lama telah diselesaikan melalui konsep defensif, dan aplikasi sekarang stabil sebagai fondasi untuk fitur harga buku, pembayaran peminjaman, transaksi buku, deadline pinjaman, denda keterlambatan, serta penyimpanan bersama berbasis file JSON server-side tanpa database.

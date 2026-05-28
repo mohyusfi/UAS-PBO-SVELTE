@@ -1,15 +1,14 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { library } from '$lib/store.svelte';
+  import { library } from '$lib/store';
   import { bookSchema, type BookFields } from '$lib/schema';
   import { goto } from '$app/navigation';
   import Card from '$lib/components/Card.svelte';
   import Button from '$lib/components/Button.svelte';
   import Input from '$lib/components/Input.svelte';
   import Modal from '$lib/components/Modal.svelte';
-  import type { Book } from '$lib/models';
+  import type { Book, BorrowRecord } from '$lib/models';
 
-  // Protecting route
   let isLoaded = $state(false);
 
   onMount(() => {
@@ -24,7 +23,6 @@
   let modalMode = $state<'add' | 'edit'>('add');
   let selectedBookId = $state<string | null>(null);
 
-  // Form Fields
   let title = $state('');
   let author = $state('');
   let isbn = $state('');
@@ -34,19 +32,16 @@
   let price = $state<number>(0);
   let stock = $state<number>(1);
 
-  // Validation errors
   let validationErrors = $state<Record<string, string>>({});
 
-  // Search in Admin
   let adminSearchQuery = $state('');
 
-  // Derived filter books for admin
   let filteredAdminBooks = $derived.by(() => {
-    let result = library.books;
+    let result: Book[] = library.books;
     if (adminSearchQuery.trim() !== '') {
       const q = adminSearchQuery.toLowerCase();
       result = result.filter(
-        (b) =>
+        (b: Book) =>
           (b.title && b.title.toLowerCase().includes(q)) ||
           (b.author && b.author.toLowerCase().includes(q)) ||
           (b.isbn && b.isbn.toLowerCase().includes(q)) ||
@@ -56,7 +51,6 @@
     return result;
   });
 
-  // Open Modal to Add
   function openAddModal() {
     modalMode = 'add';
     selectedBookId = null;
@@ -72,7 +66,6 @@
     isBookModalOpen = true;
   }
 
-  // Open Modal to Edit
   function openEditModal(book: Book) {
     modalMode = 'edit';
     selectedBookId = book.id;
@@ -88,7 +81,6 @@
     isBookModalOpen = true;
   }
 
-  // Handle Submit Form (Add or Edit)
   function handleBookSubmit(e: SubmitEvent) {
     e.preventDefault();
     validationErrors = {};
@@ -104,7 +96,6 @@
       stock: Number(stock)
     };
 
-    // Validate using Zod
     const result = bookSchema.safeParse(formData);
     if (!result.success) {
       const formatted = result.error.format();
@@ -132,7 +123,6 @@
     isBookModalOpen = false;
   }
 
-  // Handle Delete Book
   function handleDeleteBook(id: string, name: string) {
     if (confirm(`Apakah Anda yakin ingin menghapus buku "${name}" dari perpustakaan?`)) {
       library.deleteBook(id);
@@ -162,11 +152,10 @@
     return labels[method] ?? method;
   }
 
-  // Statistics calculations
   let totalBooks = $derived(library.books.length);
-  let totalBorrowed = $derived(library.borrowRecords.filter(r => r.isBorrowed).length);
-  let totalOverdue = $derived(library.borrowRecords.filter(r => r.isOverdue).length);
-  let totalStock = $derived(library.books.reduce((acc, b) => acc + b.stock, 0));
+  let totalBorrowed = $derived(library.borrowRecords.filter((r: BorrowRecord) => r.isBorrowed).length);
+  let totalOverdue = $derived(library.borrowRecords.filter((r: BorrowRecord) => r.isOverdue).length);
+  let totalStock = $derived(library.books.reduce((acc: number, b: Book) => acc + b.stock, 0));
   let totalHistory = $derived(library.borrowRecords.length);
   let totalBorrowRevenue = $derived(library.totalBorrowRevenue);
   let unpaidFineTotal = $derived(library.unpaidFineTotal);
@@ -174,14 +163,13 @@
 </script>
 
 {#if isLoaded}
-  <!-- Title Header -->
   <div class="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
       <span class="bg-black text-white px-3 py-1 font-black text-xs uppercase tracking-widest inline-block select-none mb-1">
         Dashboard Pengelola
       </span>
       <h1 class="text-3xl md:text-5xl font-black uppercase tracking-tight text-gray-900 m-0">
-        KONTROL UTAMA ADMIN 
+        KONTROL UTAMA ADMIN
       </h1>
     </div>
     
@@ -199,7 +187,6 @@
 
   </div>
 
-  <!-- Stats Grid -->
   <div class="grid grid-cols-2 lg:grid-cols-6 gap-6 mb-12">
     <Card color="yellow">
       <h4 class="text-xs font-black uppercase tracking-widest text-gray-500 m-0">Total Judul Buku</h4>
@@ -307,7 +294,7 @@
 
   {#if latestTransactions.length > 0}
     <div class="overflow-x-auto neo-border neo-shadow bg-white rounded-none">
-      <table class="w-full text-left border-collapse min-w-[980px]">
+      <table class="w-full text-left border-collapse min-w-245">
         <thead>
           <tr class="bg-[#1a1a1a] text-white border-b-4 border-black">
             <th class="p-4 font-black uppercase text-xs tracking-wider">Peminjam</th>
@@ -393,7 +380,6 @@
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <!-- Category Selector -->
         <div class="flex flex-col gap-2 w-full">
           <label for="bookCategory" class="font-black text-sm uppercase tracking-wide">
             Kategori <span class="text-neo-pink">*</span>
@@ -401,7 +387,10 @@
           <select
             id="bookCategory"
             bind:value={category}
-            class="w-full px-4 py-3 neo-border neo-shadow-sm font-semibold bg-white text-gray-900 focus:outline-none border-black"
+            class="
+              w-full px-4 py-3 neo-border neo-shadow-sm font-semibold bg-white text-gray-900 focus:outline-none border-black
+              {validationErrors.category ? 'border-neo-pink bg-red-50' : ''}
+            "
           >
             <option value="Fiksi">Fiksi</option>
             <option value="Filsafat">Filsafat</option>
@@ -409,6 +398,11 @@
             <option value="Sains / Teknologi">Sains / Teknologi</option>
             <option value="Sejarah">Sejarah</option>
           </select>
+          {#if validationErrors.category}
+            <span class="text-xs font-black uppercase text-neo-pink bg-red-100 neo-border border-neo-pink px-2 py-1 mt-1 inline-block self-start neo-shadow-sm">
+              ⚠️ {validationErrors.category}
+            </span>
+          {/if}
         </div>
 
         <Input
@@ -432,7 +426,6 @@
         />
       </div>
 
-      <!-- Description textarea -->
       <div class="flex flex-col gap-2 w-full">
         <label for="bookDesc" class="font-black text-sm uppercase tracking-wide">
           Deskripsi Singkat <span class="text-neo-pink">*</span>
@@ -455,7 +448,6 @@
         {/if}
       </div>
 
-      <!-- Optional Cover Url -->
       <Input
         id="bookCover"
         label="URL Cover Gambar (Opsional)"

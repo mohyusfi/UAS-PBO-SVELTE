@@ -81,7 +81,6 @@ export class BorrowRecord {
     this._status = returnDate || data.status === 'returned' ? 'returned' : 'borrowed';
   }
 
-  // --- Encapsulation: Read-only getters ---
   get id(): string { return this._id; }
   get bookId(): string { return this._bookId; }
   get bookTitle(): string { return this._bookTitle; }

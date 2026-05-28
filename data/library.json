@@ -1,0 +1,82 @@
+{
+  "books": [],
+  "customers": [
+    {
+      "username": "Budi Santoso",
+      "email": "budi@neolib.com",
+      "password": "password123"
+    },
+    {
+      "username": "Rina Wijaya",
+      "email": "rina@neolib.com",
+      "password": "password123"
+    },
+    {
+      "username": "Dewi Lestari",
+      "email": "dewi@neolib.com",
+      "password": "password123"
+    }
+  ],
+  "borrowRecords": [
+    {
+      "id": "rec-1",
+      "bookId": "book-1",
+      "bookTitle": "Bumi",
+      "customerName": "Budi Santoso",
+      "customerEmail": "budi@neolib.com",
+      "borrowDate": "2026-05-20",
+      "returnDate": null,
+      "borrowPrice": 12000,
+      "paymentId": "pay-seed-1",
+      "paymentMethod": "ewallet",
+      "paymentStatus": "paid",
+      "paidAt": "2026-05-20",
+      "status": "borrowed"
+    },
+    {
+      "id": "rec-2",
+      "bookId": "book-1",
+      "bookTitle": "Bumi",
+      "customerName": "Rina Wijaya",
+      "customerEmail": "rina@neolib.com",
+      "borrowDate": "2026-05-22",
+      "returnDate": null,
+      "borrowPrice": 12000,
+      "paymentId": "pay-seed-2",
+      "paymentMethod": "transfer",
+      "paymentStatus": "paid",
+      "paidAt": "2026-05-22",
+      "status": "borrowed"
+    },
+    {
+      "id": "rec-3",
+      "bookId": "book-2",
+      "bookTitle": "Filosofi Teras",
+      "customerName": "Budi Santoso",
+      "customerEmail": "budi@neolib.com",
+      "borrowDate": "2026-05-18",
+      "returnDate": null,
+      "borrowPrice": 10000,
+      "paymentId": "pay-seed-3",
+      "paymentMethod": "cash",
+      "paymentStatus": "paid",
+      "paidAt": "2026-05-18",
+      "status": "borrowed"
+    },
+    {
+      "id": "rec-4",
+      "bookId": "book-4",
+      "bookTitle": "Atomic Habits",
+      "customerName": "Dewi Lestari",
+      "customerEmail": "dewi@neolib.com",
+      "borrowDate": "2026-05-10",
+      "returnDate": "2026-05-17",
+      "borrowPrice": 15000,
+      "paymentId": "pay-seed-4",
+      "paymentMethod": "ewallet",
+      "paymentStatus": "paid",
+      "paidAt": "2026-05-10",
+      "status": "returned"
+    }
+  ]
+}

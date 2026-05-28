@@ -1,15 +1,13 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import { library } from '$lib/store.svelte';
+  import { library } from '$lib/store';
   import { goto } from '$app/navigation';
   import Card from '$lib/components/Card.svelte';
   import Button from '$lib/components/Button.svelte';
   import { DEFAULT_BORROW_DAYS, addDaysToISODate, todayISO } from '$lib/models/BorrowRecord';
 
-  // Obtain book ID from SvelteKit page store params
   let bookId = $derived($page.params.id);
 
-  // Find book in store
   let book = $derived(library.books.find(b => b.id === bookId));
   let estimatedDueDate = $derived(addDaysToISODate(todayISO(), DEFAULT_BORROW_DAYS));
 
@@ -73,10 +71,8 @@
       </p>
     </Card>
   {:else}
-    <!-- Detail Book Container -->
     <div class="grid grid-cols-1 lg:grid-cols-[minmax(260px,360px)_1fr] gap-8 items-start">
 
-      <!-- Column 1: Brutalist Cover Card -->
       <aside class="lg:sticky lg:top-24 flex flex-col gap-4">
         <div
           class={[
@@ -136,10 +132,8 @@
         </Card>
       </aside>
 
-      <!-- Column 2: Detailed Text & Controls -->
       <div class="flex flex-col gap-6">
 
-        <!-- Main details -->
         <Card color="white" class="gap-5!">
           <div class="flex flex-wrap items-center gap-3">
             <span class="bg-neo-purple text-black neo-border-2 border-black font-black px-3 py-1 text-xs uppercase">
@@ -187,7 +181,6 @@
           </div>
         </Card>
 
-        <!-- Description Box -->
         <Card color="yellow" class="gap-4!">
           <div class="flex items-center gap-2">
             <span class="inline-block w-3 h-6 bg-black"></span>
@@ -200,7 +193,6 @@
           </p>
         </Card>
 
-        <!-- Actions -->
         <Card color="bg" class="gap-4!">
           <div class="flex flex-col gap-1">
             <div>

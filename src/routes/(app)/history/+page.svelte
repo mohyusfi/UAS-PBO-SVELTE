@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { library } from '$lib/store.svelte';
+  import { library } from '$lib/store';
   import Card from '$lib/components/Card.svelte';
   import Button from '$lib/components/Button.svelte';
 

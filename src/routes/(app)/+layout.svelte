@@ -1,8 +1,7 @@
 <script lang="ts">
-  import { library } from '$lib/store.svelte';
+  import { library } from '$lib/store';
   import { goto } from '$app/navigation';
   import Button from '$lib/components/Button.svelte';
-  // import Card from '$lib/components/Card.svelte';
 
   let { children } = $props();
   let isMenuOpen = $state(false);
@@ -19,7 +18,6 @@
 </script>
 
 <div class="min-h-screen flex flex-col selection:bg-neo-pink selection:text-black">
-  <!-- Navbar -->
   <header class="bg-white neo-border-b border-black sticky top-0 z-40 p-4 neo-shadow-sm">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       
@@ -80,7 +78,6 @@
               Riwayat
             </a>
 
-            <!-- Polymorphism: canManageBooks() beda per role -->
             {#if library.currentUser.canManageBooks()}
               <a href="/admin" onclick={closeMenu} class="font-black uppercase text-sm tracking-wide px-3 py-2 neo-border bg-neo-purple hover:bg-[#a19fff] transition-all text-center md:text-left">
                 Dashboard Admin
@@ -119,12 +116,10 @@
     </div>
   </header>
 
-  <!-- Main -->
   <main class="grow max-w-7xl mx-auto w-full p-4 md:p-8">
     {@render children()}
   </main>
 
-  <!-- Footer -->
   <footer class="bg-[#1a1a1a] text-white py-8 p-6 neo-border-t border-black mt-12 text-center">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
       <p class="font-black uppercase tracking-wider text-sm">

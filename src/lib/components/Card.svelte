@@ -6,15 +6,13 @@
     color?: 'yellow' | 'pink' | 'green' | 'blue' | 'purple' | 'white' | 'bg';
     interactive?: boolean;
     class?: string;
-    onclick?: () => void;
   }
 
   let {
     children,
     color = 'white',
     interactive = false,
-    class: className = '',
-    onclick
+    class: className = ''
   }: Props = $props();
 
   const colorClasses = {
@@ -26,12 +24,10 @@
     white: 'bg-white',
     bg: 'bg-neo-bg'
   };
+
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
-  {onclick}
   class="
     neo-border p-6 neo-shadow rounded-none text-gray-900 flex flex-col gap-4
     {colorClasses[color]}

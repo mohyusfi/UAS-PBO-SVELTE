@@ -9,7 +9,6 @@ export abstract class User {
     this._email = email;
   }
 
-  
   get username(): string {
     return this._username;
   }
@@ -22,8 +21,6 @@ export abstract class User {
   abstract getDisplayInfo(): string;
   abstract canBorrow(): boolean;
   abstract canManageBooks(): boolean;
-
- 
   toSessionData(): UserSessionData {
     return {
       username: this._username,
@@ -52,11 +49,11 @@ export class AdminUser extends User {
   }
 
   canBorrow(): boolean {
-    return false; // Admin tidak boleh pinjam buku
+    return false;
   }
 
   canManageBooks(): boolean {
-    return true; // Admin boleh CRUD buku
+    return true;
   }
 }
 

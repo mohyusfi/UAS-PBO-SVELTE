@@ -1,11 +1,10 @@
 <script lang="ts">
-  import { library } from '$lib/store.svelte';
+  import { library } from '$lib/store';
   import { goto } from '$app/navigation';
   import Card from '$lib/components/Card.svelte';
   import Button from '$lib/components/Button.svelte';
   import Input from '$lib/components/Input.svelte';
 
-  // Search & Filter state
   let searchQuery = $state('');
   let selectedCategory = $state('Semua');
 
@@ -17,7 +16,6 @@
     }).format(value);
   }
 
-  // Filtered books list
   let filteredBooks = $derived.by(() => {
     let result = library.books;
 
@@ -37,19 +35,17 @@
     return result;
   });
 
-  // Unique categories list
   let categories = $derived.by(() => {
     const list = new Set(library.books.map((b) => b.category));
     return ['Semua', ...Array.from(list)];
   });
 
-  // Active borrow records for logged in customer
   let activeBorrowRecords = $derived.by(() => {
     if (!library.currentUser || !library.currentUser.canBorrow()) return [];
     return library.borrowRecords.filter(
       (r) =>
         r.customerEmail && r.customerEmail.toLowerCase() === library.currentUser!.email.toLowerCase() &&
-        r.isBorrowed // Encapsulation: getter on BorrowRecord
+        r.isBorrowed
     );
   });
 
@@ -57,7 +53,6 @@
     return new Set(activeBorrowRecords.map((record) => record.bookId));
   });
 
-  // Category colors
   const categoryColors: Record<string, string> = {
     'Fiksi': 'bg-neo-pink',
     'Filsafat': 'bg-neo-purple',
@@ -71,7 +66,6 @@
       return;
     }
 
-    // Polymorphism: canBorrow() returns different value per User type
     if (!library.currentUser.canBorrow()) {
       alert('Admin tidak dapat meminjam buku. Silakan gunakan akun customer.');
       return;
@@ -93,13 +87,11 @@
   }
 </script>
 
-<!-- Page Title -->
 <div class="flex items-center gap-2 mb-8">
   <span class="inline-block w-4 h-8 bg-neo-blue neo-border border-black"></span>
   <h1 class="text-3xl md:text-4xl font-black uppercase tracking-wider m-0">Katalog Buku 📚</h1>
 </div>
 
-<!-- Active Borrowings Section for Customer -->
 {#if library.currentUser?.canBorrow() && activeBorrowRecords.length > 0}
   <section class="mb-12">
     <div class="flex items-center gap-2 mb-6">
@@ -132,7 +124,6 @@
   </section>
 {/if}
 
-<!-- Search & Filter -->
 <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
   <div class="flex items-center gap-2">
     <span class="inline-block w-4 h-8 bg-neo-green neo-border border-black"></span>
@@ -149,7 +140,6 @@
   </div>
 </div>
 
-<!-- Categories Filter -->
 <div class="flex flex-wrap gap-2 mb-8">
   {#each categories as category (category)}
     <button
@@ -164,7 +154,6 @@
   {/each}
 </div>
 
-<!-- Book Grid -->
 {#if filteredBooks.length === 0}
   <Card color="white" class="text-center py-12">
     <p class="font-black text-lg text-gray-500 uppercase tracking-wide m-0">Tidak ada buku yang cocok dengan pencarian Anda.</p>
@@ -174,7 +163,6 @@
     {#each filteredBooks as book (book.id)}
       {@const alreadyBorrowed = activeBorrowedBookIds.has(book.id)}
       <Card interactive={true} color="white" class="h-full p-4! gap-3! justify-between overflow-hidden">
-        <!-- Cover -->
         <div class="neo-border border-black w-full aspect-[4/3] flex flex-col justify-between p-4 text-center relative overflow-hidden select-none {categoryColors[book.category] || categoryColors['default']}">
           <div class="relative z-10 flex items-start justify-between gap-2">
             <span class="bg-black text-white px-2 py-1 text-[10px] font-black uppercase tracking-widest neo-border-2 border-black max-w-[70%] truncate">
@@ -201,7 +189,6 @@
           {/if}
         </div>
 
-        <!-- Info -->
         <div class="flex flex-col gap-3 grow">
           <div class="min-h-20">
             <h3 class="font-black text-lg text-gray-900 line-clamp-2 m-0 leading-tight">{book.title}</h3>
@@ -226,7 +213,6 @@
           </div>
         </div>
 
-        <!-- Actions -->
         <div class="grid grid-cols-2 gap-2 pt-1">
           <a
             href="/books/{book.id}"

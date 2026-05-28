@@ -10,6 +10,7 @@ node_modules
 .gemini/
 .vscode/
 .codex/
+.AGENTS/
 GEMINI.md 
 AGENTS.md
 

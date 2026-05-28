@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { ComponentProps } from "svelte";
-  import { library } from "$lib/store.svelte";
+  import { library } from "$lib/store";
   import Card from "$lib/components/Card.svelte";
   import Button from "$lib/components/Button.svelte";
   import team from "./team.json";
@@ -17,7 +17,6 @@
 
   const members = team as TeamMember[];
 
-  // Polymorphism: getDisplayInfo() beda output per tipe User
   let welcomeText = $derived(
     library.currentUser
       ? library.currentUser.getDisplayInfo()
@@ -25,7 +24,6 @@
   );
 </script>
 
-<!-- Hero Section -->
 <section
   class="neo-border bg-neo-yellow p-8 md:p-12 neo-shadow-lg mb-12 flex flex-col gap-4 relative overflow-hidden text-black"
 >
@@ -57,7 +55,6 @@
   </div>
 </section>
 
-<!-- About Us Section -->
 <section
   class="neo-border bg-neo-purple p-8 md:p-12 neo-shadow-lg mb-12 flex flex-col gap-4 relative overflow-hidden text-black"
 >
@@ -85,7 +82,6 @@
   </p>
 </section>
 
-<!-- Visi & Misi -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
   <Card color="white" class="flex flex-col gap-3">
     <div class="flex items-center gap-2">
@@ -112,7 +108,6 @@
   </Card>
 </div>
 
-<!-- Team Members -->
 <section class="mb-12">
   <div class="flex items-center gap-2 mb-6">
     <span class="inline-block w-4 h-8 bg-neo-green neo-border border-black"
@@ -154,7 +149,6 @@
   </div>
 </section>
 
-<!-- CTA -->
 <Card color="yellow" class="text-center p-8 flex flex-col items-center gap-4">
   <h3 class="font-black text-xl uppercase tracking-wider m-0">
     Ingin Mencoba Meminjam Buku?

@@ -16,7 +16,6 @@ export type PaymentMethod = 'cash' | 'transfer' | 'ewallet';
 export type PaymentStatus = 'pending' | 'paid' | 'failed';
 export type FineStatus = 'none' | 'unpaid' | 'paid';
 
-/** Plain data shape untuk Payment */
 export interface PaymentData {
   id: string;
   amount: number;
@@ -25,7 +24,6 @@ export interface PaymentData {
   paidAt: string | null;
 }
 
-/** Plain data shape untuk BorrowRecord */
 export interface BorrowRecordData {
   id: string;
   bookId: string;
@@ -46,16 +44,22 @@ export interface BorrowRecordData {
   status: BorrowStatus;
 }
 
-/** Plain data shape untuk User session (disimpan di localStorage) */
 export interface UserSessionData {
   username: string;
   email: string;
   role: 'admin' | 'customer';
 }
 
-/** Plain data untuk customer yang terdaftar */
 export interface CustomerData {
   username: string;
   email: string;
   password?: string;
 }
+
+export interface LibraryData {
+  books: BookData[];
+  customers: CustomerData[];
+  borrowRecords: BorrowRecordData[];
+}
+
+export type LibraryDataPatch = Partial<LibraryData>;

@@ -17,7 +17,6 @@
     font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
   }
 
-  /* Custom Scrollbar Brutalist */
   ::-webkit-scrollbar {
     width: 12px;
     height: 12px;
@@ -32,7 +31,6 @@
   }
 }
 
-/* Neo Brutalism Helper Utilities */
 @utility neo-border {
   border: 3px solid #1a1a1a;
 }

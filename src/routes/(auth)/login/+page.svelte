@@ -1,20 +1,17 @@
 <script lang="ts">
-  import { library } from '$lib/store.svelte';
+  import { library } from '$lib/store';
   import { loginSchema, registerSchema, type LoginFields, type RegisterFields } from '$lib/schema';
   import { goto } from '$app/navigation';
   import Card from '$lib/components/Card.svelte';
   import Button from '$lib/components/Button.svelte';
   import Input from '$lib/components/Input.svelte';
 
-  // Toggle active tab: 'login' | 'register'
   let activeTab = $state<'login' | 'register'>('login');
   
-  // Unified fields
   let username = $state('');
   let email = $state('');
   let password = $state('');
   
-  // Error states
   let validationErrors = $state<Record<string, string>>({});
   let formErrorMsg = $state('');
 
@@ -27,7 +24,6 @@
     formErrorMsg = '';
   }
 
-  // Login (Polymorphism: store creates AdminUser or CustomerUser)
   function handleLogin(e: SubmitEvent) {
     e.preventDefault();
     validationErrors = {};
@@ -46,7 +42,6 @@
 
     const authResult = library.login(email, password);
     if (authResult.success) {
-      // Polymorphism: canManageBooks() berbeda per role
       if (library.currentUser?.canManageBooks()) {
         goto('/admin');
       } else {
@@ -57,7 +52,6 @@
     }
   }
 
-  // Register Customer
   function handleRegister(e: SubmitEvent) {
     e.preventDefault();
     validationErrors = {};
@@ -85,11 +79,9 @@
   }
 </script>
 
-<!-- Full-screen centered auth layout, NO navbar -->
 <div class="flex items-center justify-center min-h-screen p-4">
   <div class="w-full max-w-lg">
 
-    <!-- Brand header -->
     <div class="text-center mb-8">
       <div class="bg-neo-yellow neo-border px-4 py-2 font-black text-2xl uppercase tracking-wider neo-shadow inline-block mb-3">
         Tadikamesra-LIB
@@ -99,7 +91,6 @@
       </p>
     </div>
 
-    <!-- Tab headers -->
     <div class="flex border-b-4 border-black mb-0">
       <button
         onclick={() => handleTabChange('login')}
@@ -122,7 +113,6 @@
       </button>
     </div>
 
-    <!-- Form Panel -->
     <Card color="white" class="neo-shadow-lg rounded-t-none!">
       
       {#if activeTab === 'login'}

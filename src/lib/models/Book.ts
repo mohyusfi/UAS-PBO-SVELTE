@@ -1,11 +1,3 @@
-// ============================================================
-// BOOK.ts — Encapsulation
-// ============================================================
-// Semua field private, akses lewat getter.
-// Mutasi stok hanya lewat method deductStock() & restoreStock()
-// sehingga tidak bisa diubah sembarangan dari luar class.
-// ============================================================
-
 import type { BookData } from '../types';
 
 export class Book {
@@ -38,7 +30,6 @@ export class Book {
     return Math.max(0, Math.round(Number(price)));
   }
 
-  // --- Encapsulation: Read-only getters ---
   get id(): string { return this._id; }
   get title(): string { return this._title; }
   get author(): string { return this._author; }
@@ -50,16 +41,10 @@ export class Book {
   get stock(): number { return this._stock; }
   get borrowedCount(): number { return this._borrowedCount; }
 
-  /** Cek apakah buku masih tersedia untuk dipinjam */
   get isAvailable(): boolean {
     return this._stock > 0;
   }
 
-  // --- Encapsulation: Controlled mutation via methods ---
-
-  /**
-   * Kurangi stok saat dipinjam. Return false jika stok habis.
-   */
   deductStock(): boolean {
     if (this._stock <= 0) return false;
     this._stock -= 1;
@@ -67,23 +52,14 @@ export class Book {
     return true;
   }
 
-  /**
-   * Tambah stok saat dikembalikan.
-   */
   restoreStock(): void {
     this._stock += 1;
   }
 
-  /**
-   * Update harga buku dengan validasi agar tidak bernilai negatif.
-   */
   updatePrice(price: number): void {
     this._price = this.normalizePrice(price);
   }
 
-  /**
-   * Update detail buku (hanya field yang diberikan).
-   */
   updateDetails(fields: Partial<Omit<BookData, 'id' | 'borrowedCount'>>): void {
     if (fields.title !== undefined) this._title = fields.title;
     if (fields.author !== undefined) this._author = fields.author;
@@ -95,9 +71,6 @@ export class Book {
     if (fields.stock !== undefined) this._stock = Math.max(0, Number(fields.stock) || 0);
   }
 
-  /**
-   * Serialize ke plain object untuk localStorage.
-   */
   toJSON(): BookData {
     return {
       id: this._id,
@@ -112,10 +85,6 @@ export class Book {
       borrowedCount: this._borrowedCount
     };
   }
-
-  /**
-   * Factory method — buat instance Book dari plain data.
-   */
   static fromJSON(data: BookData): Book {
     return new Book(data);
   }

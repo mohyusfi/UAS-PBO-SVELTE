@@ -16,7 +16,7 @@
   {
     "name": "EKEL",
     "role": "Perancang UML",
-    "desc": "Membuat class diagram untuk visualisasi setiap entity dalam aplikasi.",
+    "desc": "Membuat UML seperti class diagram, use case, activity diagram, dan sequence diagram untuk visualisasi setiap entity dalam aplikasi.",
     "color": "green",
     "avatar": "💾"
   },

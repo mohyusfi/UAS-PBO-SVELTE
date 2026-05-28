@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
-  import { library } from '$lib/store.svelte';
+  import { library } from '$lib/store';
   import Card from '$lib/components/Card.svelte';
   import Button from '$lib/components/Button.svelte';
   import { DEFAULT_BORROW_DAYS, addDaysToISODate, todayISO } from '$lib/models/BorrowRecord';
