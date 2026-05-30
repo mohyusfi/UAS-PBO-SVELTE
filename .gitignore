@@ -7,12 +7,15 @@ node_modules
 .wrangler
 /.svelte-kit
 /build
+
+# ai config
 .gemini/
 .vscode/
 .codex/
-.AGENTS/
+.agents/
 GEMINI.md 
 AGENTS.md
+skills-lock.json
 
 # OS
 .DS_Store

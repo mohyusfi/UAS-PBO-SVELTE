@@ -37,7 +37,7 @@
   {onclick}
   class="
     neo-border neo-shadow neo-interactive font-black uppercase px-6 py-3 text-sm tracking-wider
-    cursor-pointer flex items-center justify-center gap-2 select-none active:translate-x-[2px] active:translate-y-[2px] active:shadow-sm
+    cursor-pointer flex items-center justify-center gap-2 select-none active:translate-x-0.5 active:translate-y-0.5 active:shadow-sm
     disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none
     {colorClasses[color]} {className}
   "
