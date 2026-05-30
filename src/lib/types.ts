@@ -61,5 +61,3 @@ export interface LibraryData {
   customers: CustomerData[];
   borrowRecords: BorrowRecordData[];
 }
-
-export type LibraryDataPatch = Partial<LibraryData>;

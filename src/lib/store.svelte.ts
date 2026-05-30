@@ -1,10 +1,8 @@
 import { PUBLIC_ADMIN_EMAIL, PUBLIC_ADMIN_PASSWORD } from '$env/static/public';
 import type {
   BookData,
-  BorrowRecordData,
   CustomerData,
   LibraryData,
-  LibraryDataPatch,
   PaymentMethod,
   UserSessionData
 } from './types';
@@ -12,7 +10,6 @@ import { Book } from './models/Book';
 import { BorrowRecord } from './models/BorrowRecord';
 import { Payment } from './models/Payment';
 import { User, AdminUser, CustomerUser } from './models/User';
-import { DEFAULT_BOOKS, DEFAULT_BORROW_RECORDS, DEFAULT_CUSTOMERS } from './defaultLibraryData';
 
 interface BorrowBookResult {
   success: boolean;
@@ -42,48 +39,17 @@ class LibraryStore {
     this.initStore();
   }
 
-  private withBookDefaults(data: BookData): BookData {
-    const fallback = DEFAULT_BOOKS.find(
-      (book) => book.id === data.id || book.isbn === data.isbn || book.title === data.title
-    );
-
-    return {
-      ...data,
-      price: data.price ?? fallback?.price ?? 0
-    };
-  }
-
-  private withBorrowRecordDefaults(data: BorrowRecordData): BorrowRecordData {
-    const book = this.books.find((item) => item.id === data.bookId);
-
-    return {
-      ...data,
-      borrowPrice: data.borrowPrice ?? book?.price ?? 0,
-      paymentId: data.paymentId ?? `pay-legacy-${data.id}`,
-      paymentMethod: data.paymentMethod ?? 'cash',
-      paymentStatus: data.paymentStatus ?? 'paid',
-      paidAt: data.paidAt ?? data.borrowDate
-    };
-  }
-
   private initStore(): void {
     if (typeof window === 'undefined') return;
 
-    this.applyLibraryData({
-      books: DEFAULT_BOOKS,
-      customers: DEFAULT_CUSTOMERS,
-      borrowRecords: DEFAULT_BORROW_RECORDS
-    });
     this.loadSession();
     void this.refreshData();
   }
 
   private applyLibraryData(data: LibraryData): void {
-    this.books = data.books.map((book) => Book.fromJSON(this.withBookDefaults(book)));
+    this.books = data.books.map((book) => Book.fromJSON(book));
     this.customers = data.customers.map((customer) => ({ ...customer }));
-    this.borrowRecords = data.borrowRecords.map((record) =>
-      BorrowRecord.fromJSON(this.withBorrowRecordDefaults(record))
-    );
+    this.borrowRecords = data.borrowRecords.map((record) => BorrowRecord.fromJSON(record));
   }
 
   private loadSession(): void {
@@ -113,17 +79,17 @@ class LibraryStore {
     }
   }
 
-  private queueSave(patch: LibraryDataPatch): void {
+  private queueRequest(path: string, method: string, body?: unknown): void {
     if (typeof window === 'undefined') return;
 
     this.saveQueue = this.saveQueue
       .then(async () => {
-        const response = await fetch('/api/library', {
-          method: 'PATCH',
+        const response = await fetch(path, {
+          method,
           headers: {
             'content-type': 'application/json'
           },
-          body: JSON.stringify(patch)
+          ...(body === undefined ? {} : { body: JSON.stringify(body) })
         });
 
         if (!response.ok) {
@@ -138,16 +104,34 @@ class LibraryStore {
       });
   }
 
-  private saveBooks(): void {
-    this.queueSave({ books: this.books.map(b => b.toJSON()) });
+  private createBook(book: Book): void {
+    this.queueRequest('/api/books', 'POST', book.toJSON());
   }
 
-  private saveCustomers(): void {
-    this.queueSave({ customers: this.customers.map((customer) => ({ ...customer })) });
+  private saveBook(book: Book): void {
+    this.queueRequest(`/api/books/${encodeURIComponent(book.id)}`, 'PATCH', book.toJSON());
   }
 
-  private saveRecords(): void {
-    this.queueSave({ borrowRecords: this.borrowRecords.map(r => r.toJSON()) });
+  private removeBook(id: string): void {
+    this.queueRequest(`/api/books/${encodeURIComponent(id)}`, 'DELETE');
+  }
+
+  private saveCustomer(customer: CustomerData): void {
+    this.queueRequest('/api/customers', 'POST', { ...customer });
+  }
+
+  private createBorrowRecord(record: BorrowRecord, book: Book): void {
+    this.queueRequest('/api/borrow-records', 'POST', {
+      record: record.toJSON(),
+      book: book.toJSON()
+    });
+  }
+
+  private saveBorrowRecord(record: BorrowRecord, book?: Book): void {
+    this.queueRequest(`/api/borrow-records/${encodeURIComponent(record.id)}`, 'PATCH', {
+      record: record.toJSON(),
+      ...(book ? { book: book.toJSON() } : {})
+    });
   }
 
   private saveSession(): void {
@@ -202,7 +186,7 @@ class LibraryStore {
     }
 
     this.customers.push({ username, email, password });
-    this.saveCustomers();
+    this.saveCustomer({ username, email, password });
 
     this.currentUser = new CustomerUser(username, email);
     this.saveSession();
@@ -223,7 +207,7 @@ class LibraryStore {
       borrowedCount: 0
     });
     this.books.push(newBook);
-    this.saveBooks();
+    this.createBook(newBook);
     return newBook;
   }
 
@@ -231,13 +215,13 @@ class LibraryStore {
     const book = this.books.find(b => b.id === id);
     if (book) {
       book.updateDetails(updatedFields);
-      this.saveBooks();
+      this.saveBook(book);
     }
   }
 
   deleteBook(id: string): void {
     this.books = this.books.filter(b => b.id !== id);
-    this.saveBooks();
+    this.removeBook(id);
   }
 
   get activeBorrowRecords(): BorrowRecord[] {
@@ -297,12 +281,11 @@ class LibraryStore {
       return { success: false, error: 'Stok buku habis.' };
     }
     this.books = [...this.books];
-    this.saveBooks();
 
     const record = BorrowRecord.create(bookId, book.title, customerName, customerEmail, payment.toJSON());
     this.borrowRecords.unshift(record);
     this.borrowRecords = [...this.borrowRecords];
-    this.saveRecords();
+    this.createBorrowRecord(record, book);
 
     return { success: true, record, payment };
   }
@@ -313,14 +296,13 @@ class LibraryStore {
 
     if (!record.markReturned()) return { success: false, error: 'Buku sudah dikembalikan.' };
     this.borrowRecords = [...this.borrowRecords];
-    this.saveRecords();
 
     const book = this.books.find(b => b.id === record.bookId);
     if (book) {
       book.restoreStock();
       this.books = [...this.books];
-      this.saveBooks();
     }
+    this.saveBorrowRecord(record, book);
 
     return {
       success: true,
@@ -337,7 +319,7 @@ class LibraryStore {
     const success = record.markFinePaid();
     if (success) {
       this.borrowRecords = [...this.borrowRecords];
-      this.saveRecords();
+      this.saveBorrowRecord(record);
     }
 
     return success;
