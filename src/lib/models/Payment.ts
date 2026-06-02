@@ -8,49 +8,43 @@ function createPaymentId(): string {
   return `pay-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+function normalizeAmount(value: unknown): number {
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? Math.max(0, Math.round(numberValue)) : 0;
+}
+
 export class Payment {
-  private _id: string;
-  private _amount: number;
-  private _method: PaymentMethod;
-  private _status: PaymentStatus;
-  private _paidAt: string | null;
+  private data: PaymentData;
 
   constructor(data: PaymentData) {
-    this._id = data.id;
-    this._amount = Math.max(0, Math.round(Number(data.amount) || 0));
-    this._method = data.method;
-    this._status = data.status;
-    this._paidAt = data.paidAt;
+    this.data = {
+      ...data,
+      amount: normalizeAmount(data.amount)
+    };
   }
 
-  get id(): string { return this._id; }
-  get amount(): number { return this._amount; }
-  get method(): PaymentMethod { return this._method; }
-  get status(): PaymentStatus { return this._status; }
-  get paidAt(): string | null { return this._paidAt; }
+  get id(): string { return this.data.id; }
+  get amount(): number { return this.data.amount; }
+  get method(): PaymentMethod { return this.data.method; }
+  get status(): PaymentStatus { return this.data.status; }
+  get paidAt(): string | null { return this.data.paidAt; }
 
   get isPaid(): boolean {
-    return this._status === 'paid';
+    return this.data.status === 'paid';
   }
 
   markPaid(paymentDate = todayISO()): void {
-    this._status = 'paid';
-    this._paidAt = paymentDate;
+    this.data.status = 'paid';
+    this.data.paidAt = paymentDate;
   }
 
   markFailed(): void {
-    this._status = 'failed';
-    this._paidAt = null;
+    this.data.status = 'failed';
+    this.data.paidAt = null;
   }
 
   toJSON(): PaymentData {
-    return {
-      id: this._id,
-      amount: this._amount,
-      method: this._method,
-      status: this._status,
-      paidAt: this._paidAt
-    };
+    return { ...this.data };
   }
 
   static create(amount: number, method: PaymentMethod): Payment {
