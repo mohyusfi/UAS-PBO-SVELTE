@@ -12,6 +12,26 @@ export const FINE_PER_DAY = 2000;
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
+type BorrowRecordState = {
+  id: string;
+  bookId: string;
+  bookTitle: string;
+  customerName: string;
+  customerEmail: string;
+  borrowDate: string;
+  returnDate: string | null;
+  dueDate: string;
+  lateDays: number;
+  fineAmount: number;
+  fineStatus: FineStatus;
+  borrowPrice: number;
+  paymentId: string | null;
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
+  paidAt: string | null;
+  status: Exclude<BorrowStatus, 'overdue'>;
+};
+
 export function todayISO(): string {
   return new Date().toISOString().split('T')[0];
 }
@@ -22,7 +42,9 @@ export function addDaysToISODate(date: string, days: number): string {
 
 function parseISODateToUTC(date: string): number {
   const [year, month, day] = date.split('-').map(Number);
-  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return Date.UTC(1970, 0, 1);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+    return Date.UTC(1970, 0, 1);
+  }
   return Date.UTC(year, month - 1, day);
 }
 
@@ -31,104 +53,92 @@ function dayDiff(fromDate: string, toDate: string): number {
   return Number.isFinite(diff) ? diff : 0;
 }
 
+function normalizeNumber(value: unknown): number {
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? Math.max(0, Math.round(numberValue)) : 0;
+}
+
 function createRecordId(): string {
   return `rec-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 export class BorrowRecord {
-  private _id: string;
-  private _bookId: string;
-  private _bookTitle: string;
-  private _customerName: string;
-  private _customerEmail: string;
-  private _borrowDate: string;
-  private _returnDate: string | null;
-  private _dueDate: string;
-  private _lateDays: number;
-  private _fineAmount: number;
-  private _fineStatus: FineStatus;
-  private _borrowPrice: number;
-  private _paymentId: string | null;
-  private _paymentMethod: PaymentMethod;
-  private _paymentStatus: PaymentStatus;
-  private _paidAt: string | null;
-  private _status: Exclude<BorrowStatus, 'overdue'>;
+  private data: BorrowRecordState;
 
   constructor(data: BorrowRecordData) {
     const borrowDate = data.borrowDate || todayISO();
     const dueDate = data.dueDate || addDaysToISODate(borrowDate, DEFAULT_BORROW_DAYS);
     const returnDate = data.returnDate ?? null;
-    const computedLateDays = Math.max(0, dayDiff(dueDate, returnDate || todayISO()));
-    const lateDays = data.lateDays ?? (returnDate ? computedLateDays : 0);
+    const lateDays = data.lateDays ?? (returnDate ? Math.max(0, dayDiff(dueDate, returnDate)) : 0);
     const fineAmount = data.fineAmount ?? lateDays * FINE_PER_DAY;
 
-    this._id = data.id;
-    this._bookId = data.bookId;
-    this._bookTitle = data.bookTitle;
-    this._customerName = data.customerName;
-    this._customerEmail = data.customerEmail;
-    this._borrowDate = borrowDate;
-    this._returnDate = returnDate;
-    this._dueDate = dueDate;
-    this._lateDays = Math.max(0, Number(lateDays) || 0);
-    this._fineAmount = Math.max(0, Math.round(Number(fineAmount) || 0));
-    this._fineStatus = data.fineStatus ?? (this._fineAmount > 0 ? 'unpaid' : 'none');
-    this._borrowPrice = Math.max(0, Math.round(Number(data.borrowPrice) || 0));
-    this._paymentId = data.paymentId ?? null;
-    this._paymentMethod = data.paymentMethod ?? 'cash';
-    this._paymentStatus = data.paymentStatus ?? 'paid';
-    this._paidAt = data.paidAt ?? data.borrowDate ?? null;
-    this._status = returnDate || data.status === 'returned' ? 'returned' : 'borrowed';
+    this.data = {
+      id: data.id,
+      bookId: data.bookId,
+      bookTitle: data.bookTitle,
+      customerName: data.customerName,
+      customerEmail: data.customerEmail,
+      borrowDate,
+      returnDate,
+      dueDate,
+      lateDays: normalizeNumber(lateDays),
+      fineAmount: normalizeNumber(fineAmount),
+      fineStatus: data.fineStatus ?? (fineAmount > 0 ? 'unpaid' : 'none'),
+      borrowPrice: normalizeNumber(data.borrowPrice),
+      paymentId: data.paymentId ?? null,
+      paymentMethod: data.paymentMethod ?? 'cash',
+      paymentStatus: data.paymentStatus ?? 'paid',
+      paidAt: data.paidAt ?? data.borrowDate ?? null,
+      status: returnDate || data.status === 'returned' ? 'returned' : 'borrowed'
+    };
   }
 
-  get id(): string { return this._id; }
-  get bookId(): string { return this._bookId; }
-  get bookTitle(): string { return this._bookTitle; }
-  get customerName(): string { return this._customerName; }
-  get customerEmail(): string { return this._customerEmail; }
-  get borrowDate(): string { return this._borrowDate; }
-  get returnDate(): string | null { return this._returnDate; }
-  get dueDate(): string { return this._dueDate; }
-  get borrowPrice(): number { return this._borrowPrice; }
-  get paymentId(): string | null { return this._paymentId; }
-  get paymentMethod(): PaymentMethod { return this._paymentMethod; }
-  get paymentStatus(): PaymentStatus { return this._paymentStatus; }
-  get paidAt(): string | null { return this._paidAt; }
+  get id(): string { return this.data.id; }
+  get bookId(): string { return this.data.bookId; }
+  get bookTitle(): string { return this.data.bookTitle; }
+  get customerName(): string { return this.data.customerName; }
+  get customerEmail(): string { return this.data.customerEmail; }
+  get borrowDate(): string { return this.data.borrowDate; }
+  get returnDate(): string | null { return this.data.returnDate; }
+  get dueDate(): string { return this.data.dueDate; }
+  get borrowPrice(): number { return this.data.borrowPrice; }
+  get paymentId(): string | null { return this.data.paymentId; }
+  get paymentMethod(): PaymentMethod { return this.data.paymentMethod; }
+  get paymentStatus(): PaymentStatus { return this.data.paymentStatus; }
+  get paidAt(): string | null { return this.data.paidAt; }
 
   get status(): BorrowStatus {
-    if (this._status === 'returned') return 'returned';
+    if (this.data.status === 'returned') return 'returned';
     return this.isOverdue ? 'overdue' : 'borrowed';
   }
 
   get lateDays(): number {
-    if (this._status === 'returned') return this._lateDays;
-    return this.calculateLateDays();
+    return this.data.status === 'returned' ? this.data.lateDays : this.calculateLateDays();
   }
 
   get fineAmount(): number {
-    if (this._status === 'returned') return this._fineAmount;
-    return this.calculateFine();
+    return this.data.status === 'returned' ? this.data.fineAmount : this.calculateFine();
   }
 
   get fineStatus(): FineStatus {
-    if (this._fineStatus !== 'none') return this._fineStatus;
+    if (this.data.fineStatus !== 'none') return this.data.fineStatus;
     return this.fineAmount > 0 ? 'unpaid' : 'none';
   }
 
   get isBorrowed(): boolean {
-    return this._status === 'borrowed';
+    return this.data.status === 'borrowed';
   }
 
   get isOverdue(): boolean {
-    return this._status === 'borrowed' && this.calculateLateDays() > 0;
+    return this.data.status === 'borrowed' && this.calculateLateDays() > 0;
   }
 
   get isPaymentPaid(): boolean {
-    return this._paymentStatus === 'paid';
+    return this.data.paymentStatus === 'paid';
   }
 
   calculateLateDays(returnDate = todayISO()): number {
-    return Math.max(0, dayDiff(this._dueDate, returnDate));
+    return Math.max(0, dayDiff(this.data.dueDate, returnDate));
   }
 
   calculateFine(returnDate = todayISO()): number {
@@ -136,41 +146,30 @@ export class BorrowRecord {
   }
 
   markReturned(returnDate = todayISO()): boolean {
-    if (this._status === 'returned') return false;
+    if (this.data.status === 'returned') return false;
 
-    this._status = 'returned';
-    this._returnDate = returnDate;
-    this._lateDays = this.calculateLateDays(returnDate);
-    this._fineAmount = this.calculateFine(returnDate);
-    this._fineStatus = this._fineAmount > 0 ? 'unpaid' : 'none';
+    this.data.status = 'returned';
+    this.data.returnDate = returnDate;
+    this.data.lateDays = this.calculateLateDays(returnDate);
+    this.data.fineAmount = this.calculateFine(returnDate);
+    this.data.fineStatus = this.data.fineAmount > 0 ? 'unpaid' : 'none';
 
     return true;
   }
 
   markFinePaid(): boolean {
     if (this.fineAmount <= 0 || this.fineStatus !== 'unpaid') return false;
-    this._fineStatus = 'paid';
+
+    this.data.fineStatus = 'paid';
     return true;
   }
 
   toJSON(): BorrowRecordData {
     return {
-      id: this._id,
-      bookId: this._bookId,
-      bookTitle: this._bookTitle,
-      customerName: this._customerName,
-      customerEmail: this._customerEmail,
-      borrowDate: this._borrowDate,
-      returnDate: this._returnDate,
-      dueDate: this._dueDate,
+      ...this.data,
       lateDays: this.lateDays,
       fineAmount: this.fineAmount,
       fineStatus: this.fineStatus,
-      borrowPrice: this._borrowPrice,
-      paymentId: this._paymentId,
-      paymentMethod: this._paymentMethod,
-      paymentStatus: this._paymentStatus,
-      paidAt: this._paidAt,
       status: this.status
     };
   }
